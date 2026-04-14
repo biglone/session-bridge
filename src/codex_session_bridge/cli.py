@@ -1,5 +1,8 @@
 import argparse
 import re
+import shutil
+import subprocess
+import sys
 from pathlib import Path
 
 from .adapters.claude_projects import import_claude_projects
@@ -182,10 +185,50 @@ def cmd_resume(args: argparse.Namespace) -> int:
     if session is None:
         raise SystemExit(f"Session not found: {args.session_id}")
 
-    return _print_resume(store, session.id, args.max_turns, args.no_consistency_check)
+    return _print_resume(
+        store,
+        session.id,
+        args.max_turns,
+        args.no_consistency_check,
+        copy_output=bool(getattr(args, "copy", False)),
+    )
 
 
-def _print_resume(store: BridgeStore, session_id: str, max_turns: int, no_consistency_check: bool) -> int:
+def _copy_to_clipboard(text: str) -> tuple[bool, str]:
+    commands = [
+        ["pbcopy"],  # macOS
+        ["wl-copy"],  # Wayland
+        ["xclip", "-selection", "clipboard"],  # X11
+        ["xsel", "--clipboard", "--input"],  # X11
+        ["clip.exe"],  # Windows
+        ["clip"],  # Windows (fallback alias)
+    ]
+
+    payload = text.encode("utf-8")
+    for command in commands:
+        executable = command[0]
+        if shutil.which(executable) is None:
+            continue
+        try:
+            subprocess.run(
+                command,
+                input=payload,
+                check=True,
+                timeout=5,
+            )
+            return True, executable
+        except (OSError, subprocess.SubprocessError):
+            continue
+    return False, ""
+
+
+def _print_resume(
+    store: BridgeStore,
+    session_id: str,
+    max_turns: int,
+    no_consistency_check: bool,
+    copy_output: bool = False,
+) -> int:
     session = store.get_session(session_id)
     if session is None:
         raise SystemExit(f"Session not found: {session_id}")
@@ -194,6 +237,25 @@ def _print_resume(store: BridgeStore, session_id: str, max_turns: int, no_consis
     context = build_resume_context(session, turns)
     if not no_consistency_check:
         context = f"{context}\n\n{build_git_consistency_section(session)}"
+
+    if copy_output:
+        copied, command_name = _copy_to_clipboard(context)
+        if copied:
+            print(
+                f"Resume context copied to clipboard via '{command_name}'. "
+                "Open a new Codex session and paste to continue."
+            )
+            print(
+                f"Session: {session.id} | turns_included={len(turns)} | "
+                f"chars={len(context)}"
+            )
+            return 0
+        print(
+            "Clipboard copy failed; printing full resume context below. "
+            "Install one of: pbcopy, wl-copy, xclip, xsel.",
+            file=sys.stderr,
+        )
+
     print(context)
     return 0
 
@@ -215,7 +277,13 @@ def cmd_resume_latest(args: argparse.Namespace) -> int:
     if session is None:
         hint = f" provider filter={args.provider!r}" if args.provider else ""
         raise SystemExit(f"No sessions found for project={project_root}{hint}")
-    return _print_resume(store, session.id, args.max_turns, args.no_consistency_check)
+    return _print_resume(
+        store,
+        session.id,
+        args.max_turns,
+        args.no_consistency_check,
+        copy_output=bool(getattr(args, "copy", False)),
+    )
 
 
 def cmd_import_codex(args: argparse.Namespace) -> int:
@@ -381,6 +449,11 @@ def build_parser() -> argparse.ArgumentParser:
     p_resume.add_argument("session_id", help="Bridge session id")
     p_resume.add_argument("--max-turns", type=int, default=20, help="Recent turns to include")
     p_resume.add_argument(
+        "--copy",
+        action="store_true",
+        help="Copy generated resume context to system clipboard and print a short continuation hint",
+    )
+    p_resume.add_argument(
         "--no-consistency-check",
         action="store_true",
         help="Skip git branch/commit consistency check section",
@@ -430,6 +503,11 @@ def build_parser() -> argparse.ArgumentParser:
         help="Disable auto-import from home Codex directory before resolving latest session",
     )
     p_resume_latest.add_argument("--max-turns", type=int, default=20, help="Recent turns to include")
+    p_resume_latest.add_argument(
+        "--copy",
+        action="store_true",
+        help="Copy generated resume context to system clipboard and print a short continuation hint",
+    )
     p_resume_latest.add_argument(
         "--no-consistency-check",
         action="store_true",

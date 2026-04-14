@@ -135,6 +135,8 @@ Filter by provider keyword (case-insensitive):
 ./bin/bridge --db-path .bridge/session-bridge.sqlite resume <bridge-session-id> --max-turns 20
 ```
 
+`resume` / `resume-latest` default to `--max-turns 20` if you do not specify it.
+
 Resume the latest session directly (no manual session id):
 
 ```bash
@@ -145,6 +147,17 @@ Resume the latest session directly (no manual session id):
 ```
 
 `resume-latest` also auto-imports project-local `./.codex` and home-level `~/.codex` history before selecting the latest session.
+
+When the generated context is too long for terminal output, copy directly to clipboard:
+
+```bash
+./bin/bridge --db-path .bridge/session-bridge.sqlite resume-latest \
+  --project-root . \
+  --max-turns 100 \
+  --copy
+```
+
+On successful copy, CLI prints a short hint so you can open a new Codex session and paste.
 
 Skip repo consistency check section if needed:
 

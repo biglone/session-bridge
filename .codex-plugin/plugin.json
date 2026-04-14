@@ -4,7 +4,7 @@
   "description": "Cross-provider session bridge for Codex workflows",
   "author": {
     "name": "Biglone",
-    "email": "todo@example.com",
+    "email": "biglone@users.noreply.github.com",
     "url": "https://github.com/Biglone"
   },
   "homepage": "https://github.com/Biglone/session-bridge",
@@ -29,8 +29,8 @@
       "Interactive"
     ],
     "websiteURL": "https://github.com/Biglone/session-bridge",
-    "privacyPolicyURL": "https://example.com/privacy",
-    "termsOfServiceURL": "https://example.com/terms",
+    "privacyPolicyURL": "https://github.com/Biglone/session-bridge/blob/main/docs/privacy.md",
+    "termsOfServiceURL": "https://github.com/Biglone/session-bridge/blob/main/docs/terms.md",
     "defaultPrompt": [
       "Sync current provider conversation into the unified bridge store.",
       "Show my latest bridge sessions for this repository.",

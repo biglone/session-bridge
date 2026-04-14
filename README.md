@@ -16,7 +16,7 @@ Provide a local bridge so users can switch between different Codex providers/acc
 
 This project does not try to reuse vendor-native server session IDs. It rebuilds context in a new session.
 
-## Planned Milestones
+## Completed Milestones
 
 1. Plugin metadata and installable skeleton
 2. Local unified session store (SQLite)
@@ -26,7 +26,7 @@ This project does not try to reuse vendor-native server session IDs. It rebuilds
 
 ## Status
 
-MVP ready:
+Release-candidate baseline:
 
 - SQLite bridge store
 - `bridge list` with provider filter (`--provider`)
@@ -37,8 +37,19 @@ MVP ready:
 - `bridge install-plugin` to register into `~/.agents/plugins/marketplace.json`
 - `bridge sync-demo` for synthetic test data
 - imported text is sanitized for common `token/key/bearer` secret patterns
+- release governance docs (`CHANGELOG`, `CONTRIBUTING`, `SECURITY`, `CODE_OF_CONDUCT`)
+- CI release gates for tests and package checks
 
 ## Quick Start
 
 See [`docs/quickstart.md`](./docs/quickstart.md).
 NPM publish/use flow: [`docs/npm-publish.md`](./docs/npm-publish.md).
+Release checklist: [`docs/release.md`](./docs/release.md).
+Privacy policy: [`docs/privacy.md`](./docs/privacy.md).
+Terms: [`docs/terms.md`](./docs/terms.md).
+
+Local release preflight command:
+
+```bash
+npm run release:check
+```

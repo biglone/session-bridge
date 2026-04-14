@@ -30,18 +30,29 @@
     "npm/bin.cjs",
     "bin/bridge",
     "scripts/setup_venv.sh",
+    "scripts/release_check.sh",
     "src/codex_session_bridge/**/*.py",
     "skills/session-bridge/SKILL.md",
     ".codex-plugin/plugin.json",
     "docs/quickstart.md",
     "docs/npm-publish.md",
+    "docs/privacy.md",
+    "docs/terms.md",
+    "docs/release.md",
+    "CHANGELOG.md",
+    "CONTRIBUTING.md",
+    "SECURITY.md",
+    "CODE_OF_CONDUCT.md",
     "pyproject.toml",
     "README.md",
     "LICENSE"
   ],
   "scripts": {
     "test:python": "PYTHONPATH=src python3 -m pytest -q",
-    "pack:check": "npm pack --dry-run"
+    "pack:check": "npm pack --dry-run",
+    "release:check": "bash scripts/release_check.sh",
+    "build:python": ".venv/bin/python -m build --sdist --wheel",
+    "twine:check": ".venv/bin/python -m twine check dist/*"
   },
   "engines": {
     "node": ">=18"

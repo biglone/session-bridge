@@ -8,11 +8,29 @@ version = "0.1.0"
 description = "Cross-provider session bridge for Codex workflows"
 readme = "README.md"
 requires-python = ">=3.10"
-license = {text = "MIT"}
+license = "MIT"
+license-files = ["LICENSE"]
 authors = [
-  {name = "Biglone", email = "todo@example.com"}
+  {name = "Biglone", email = "biglone@users.noreply.github.com"}
 ]
 dependencies = []
+classifiers = [
+  "Programming Language :: Python :: 3",
+  "Programming Language :: Python :: 3 :: Only",
+  "Programming Language :: Python :: 3.10",
+  "Programming Language :: Python :: 3.11",
+  "Programming Language :: Python :: 3.12",
+  "Topic :: Software Development :: Libraries",
+  "Topic :: Utilities",
+]
+
+[project.urls]
+Homepage = "https://github.com/Biglone/session-bridge"
+Repository = "https://github.com/Biglone/session-bridge"
+Issues = "https://github.com/Biglone/session-bridge/issues"
+
+[project.optional-dependencies]
+dev = ["pytest>=7.0", "build>=1.2.1", "twine>=5.1.1"]
 
 [project.scripts]
 bridge = "codex_session_bridge.cli:main"

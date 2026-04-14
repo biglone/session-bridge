@@ -18,9 +18,12 @@ Keep session continuity when switching Codex providers or accounts.
 
 ## Commands
 
-- `bridge sync`: ingest current provider session into local store
+- `bridge import-codex`: ingest local Codex rollout sessions
+- `bridge import-claude`: ingest local Claude project sessions
+- `bridge import-all`: run both import pipelines in one command
 - `bridge list`: list latest sessions for current repository
 - `bridge resume <bridge_session_id>`: generate recovery context
+- `bridge resume-latest`: generate recovery context from latest session
 
 ## Guardrails
 

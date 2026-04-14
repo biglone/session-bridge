@@ -9,9 +9,8 @@
 ## Local validation
 
 ```bash
-cd /home/Biglone/workspace/session-bridge
-npm run test:python
-npm run pack:check
+cd /path/to/session-bridge
+npm run release:check
 ```
 
 ## Login and publish

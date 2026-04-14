@@ -3,7 +3,7 @@
 ## 1) Install editable package
 
 ```bash
-cd /home/Biglone/workspace/session-bridge
+cd /path/to/session-bridge
 python3 -m pip install -e .
 ```
 
@@ -16,7 +16,7 @@ npx @biglone/session-bridge --help
 If your system blocks global pip install (PEP 668), use local venv setup:
 
 ```bash
-cd /home/Biglone/workspace/session-bridge
+cd /path/to/session-bridge
 ./scripts/setup_venv.sh
 ```
 
@@ -29,7 +29,7 @@ Then run via local launcher (works with or without editable install):
 ## 1.5) Register plugin into Codex local marketplace (one-time)
 
 ```bash
-./bin/bridge install-plugin --plugin-source /home/Biglone/workspace/session-bridge
+./bin/bridge install-plugin --plugin-source .
 ```
 
 This creates:

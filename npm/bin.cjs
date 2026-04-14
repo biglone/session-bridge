@@ -6,7 +6,7 @@ const path = require("node:path");
 const { spawnSync } = require("node:child_process");
 
 const packageRoot = path.resolve(__dirname, "..");
-const runtimeRoot = path.join(os.homedir(), ".session-bridge-plugin", "runtime");
+const runtimeRoot = path.join(os.homedir(), ".session-bridge", "runtime");
 const venvDir = path.join(runtimeRoot, "venv");
 const versionFile = path.join(runtimeRoot, "version.json");
 const packageJson = JSON.parse(fs.readFileSync(path.join(packageRoot, "package.json"), "utf8"));

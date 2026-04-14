@@ -1,10 +1,30 @@
 # session-bridge
 
-Cross-provider session bridge for Codex-style workflows.
+Cross-provider session continuity toolkit for Codex workflows.
 
 Run commands with `./bin/bridge` (no global pip requirement).
 
 NPM package mode is supported (launcher bootstraps Python runtime automatically).
+
+Global install:
+
+```bash
+npm install -g @biglone/session-bridge
+```
+
+## Why this package
+
+When you switch model providers/accounts, native `/resume` flows are often provider-isolated.
+`session-bridge` helps you recover and continue project context safely by combining:
+
+- unified session indexing across project `.codex` and home `~/.codex` histories
+- `resume-latest` context reconstruction with clipboard-friendly output
+- SSH-first workflow support (`copy-local` + OSC52 fallback)
+- provider shim apply/run/restore for temporary cross-provider `/resume` compatibility
+- import pipelines for Codex rollout logs and Claude Code project logs
+
+Typical search terms:
+`codex resume`, `cross provider session bridge`, `codex history import`, `ssh clipboard codex`, `osc52 resume`.
 
 ## Goal
 

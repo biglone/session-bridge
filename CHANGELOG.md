@@ -6,6 +6,10 @@ The format is based on Keep a Changelog and this project follows Semantic Versio
 
 ## [Unreleased]
 
+### Changed
+- refreshed NPM package metadata (`description`, discoverability `keywords`) to better reflect current features (`shim`, `resume-latest`, SSH clipboard/OSC52, cross-provider continuity).
+- improved README and publish guide messaging to align package listing copy with actual CLI capabilities.
+
 ## [0.1.8] - 2026-04-15
 
 ### Fixed

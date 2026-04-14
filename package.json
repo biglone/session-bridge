@@ -1,21 +1,36 @@
 {
   "name": "@biglone/session-bridge",
   "version": "0.1.8",
-  "description": "Cross-provider session bridge plugin/CLI for Codex workflows",
+  "description": "Cross-provider Codex session continuity CLI with resume context bridging, .codex history import, SSH clipboard support, and safe provider shim restore",
   "type": "commonjs",
   "license": "MIT",
   "author": "Biglone",
   "homepage": "https://github.com/Biglone/session-bridge",
   "repository": {
     "type": "git",
-    "url": "https://github.com/Biglone/session-bridge.git"
+    "url": "git+https://github.com/Biglone/session-bridge.git"
   },
   "bugs": {
     "url": "https://github.com/Biglone/session-bridge/issues"
   },
   "keywords": [
     "codex",
-    "plugin",
+    "openai-codex",
+    "codex-cli",
+    "codex-plugin",
+    "session-bridge",
+    "session-resume",
+    "conversation-history",
+    "context-recovery",
+    "cross-provider",
+    "provider-switch",
+    "ai-coding",
+    "agentic-coding",
+    "developer-tools",
+    "ssh",
+    "clipboard",
+    "osc52",
+    "claude-code",
     "session",
     "resume",
     "bridge"

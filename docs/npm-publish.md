@@ -13,6 +13,24 @@ cd /path/to/session-bridge
 npm run release:check
 ```
 
+## Package metadata checklist (recommended before publish)
+
+Ensure `package.json` aligns with current features:
+
+- `description`: mention core value in one sentence (cross-provider resume continuity)
+- `keywords`: include real discoverability terms, for example:
+  - `codex`, `codex-cli`, `session-resume`, `cross-provider`, `context-recovery`
+  - `ssh`, `clipboard`, `osc52` (if supported)
+  - `claude-code` (if import integration exists)
+- `homepage`, `repository`, `bugs`: valid GitHub links
+- `files`: only ship runtime-relevant files
+
+Preview NPM listing payload:
+
+```bash
+npm pack --dry-run
+```
+
 ## Login and publish
 
 ```bash

@@ -1,0 +1,50 @@
+{
+  "name": "@biglone/codex-session-bridge",
+  "version": "0.1.0",
+  "description": "Cross-provider session bridge plugin/CLI for Codex workflows",
+  "type": "commonjs",
+  "license": "MIT",
+  "author": "Biglone",
+  "homepage": "https://github.com/Biglone/codex-session-bridge-plugin",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/Biglone/codex-session-bridge-plugin.git"
+  },
+  "bugs": {
+    "url": "https://github.com/Biglone/codex-session-bridge-plugin/issues"
+  },
+  "keywords": [
+    "codex",
+    "plugin",
+    "session",
+    "resume",
+    "bridge"
+  ],
+  "bin": {
+    "codex-session-bridge": "npm/bin.cjs",
+    "csbridge": "npm/bin.cjs"
+  },
+  "files": [
+    "npm/bin.cjs",
+    "bin/bridge",
+    "scripts/setup_venv.sh",
+    "src/codex_session_bridge/**/*.py",
+    "skills/session-bridge/SKILL.md",
+    ".codex-plugin/plugin.json",
+    "docs/quickstart.md",
+    "docs/npm-publish.md",
+    "pyproject.toml",
+    "README.md",
+    "LICENSE"
+  ],
+  "scripts": {
+    "test:python": "PYTHONPATH=src python3 -m pytest -q",
+    "pack:check": "npm pack --dry-run"
+  },
+  "engines": {
+    "node": ">=18"
+  },
+  "publishConfig": {
+    "access": "public"
+  }
+}

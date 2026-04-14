@@ -7,6 +7,12 @@ cd /home/Biglone/workspace/codex-session-bridge-plugin
 python3 -m pip install -e .
 ```
 
+Alternative (NPM package):
+
+```bash
+npx @biglone/codex-session-bridge --help
+```
+
 If your system blocks global pip install (PEP 668), use local venv setup:
 
 ```bash

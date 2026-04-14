@@ -4,6 +4,8 @@ Cross-provider session bridge for Codex-style workflows.
 
 Run commands with `./bin/bridge` (no global pip requirement).
 
+NPM package mode is supported (launcher bootstraps Python runtime automatically).
+
 ## Goal
 
 Provide a local bridge so users can switch between different Codex providers/accounts and still recover:
@@ -39,3 +41,4 @@ MVP ready:
 ## Quick Start
 
 See [`docs/quickstart.md`](./docs/quickstart.md).
+NPM publish/use flow: [`docs/npm-publish.md`](./docs/npm-publish.md).

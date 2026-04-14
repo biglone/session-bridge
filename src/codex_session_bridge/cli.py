@@ -1,6 +1,7 @@
 import argparse
 from pathlib import Path
 
+from .adapters.claude_projects import import_claude_projects
 from .adapters.codex_rollout import import_codex_rollouts
 from .models import BridgeSession, BridgeTurn
 from .resume import build_resume_context
@@ -89,6 +90,24 @@ def cmd_import_codex(args: argparse.Namespace) -> int:
     return 0
 
 
+def cmd_import_claude(args: argparse.Namespace) -> int:
+    store = _store_from_args(args)
+    project_root_filter = None if args.all_projects else str(Path(args.project_root).resolve())
+    stats = import_claude_projects(
+        store=store,
+        projects_root=Path(args.projects_root),
+        provider_label=args.provider_label,
+        project_root_filter=project_root_filter,
+        limit=args.limit,
+    )
+    print(
+        "Import finished: "
+        f"scanned={stats.scanned} imported={stats.imported} "
+        f"skipped_project={stats.skipped_project} skipped_invalid={stats.skipped_invalid}"
+    )
+    return 0
+
+
 def build_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(prog="bridge", description="Codex session bridge CLI")
     parser.add_argument(
@@ -157,6 +176,33 @@ def build_parser() -> argparse.ArgumentParser:
     )
     p_import.add_argument("--limit", type=int, default=200, help="Maximum rollout files to scan")
     p_import.set_defaults(func=cmd_import_codex)
+
+    p_import_claude = subparsers.add_parser(
+        "import-claude",
+        help="Import Claude project sessions from ~/.claude/projects into bridge store",
+    )
+    p_import_claude.add_argument(
+        "--projects-root",
+        default="~/.claude/projects",
+        help="Path to Claude projects root directory",
+    )
+    p_import_claude.add_argument(
+        "--provider-label",
+        default="claude-code",
+        help="Provider label namespace (e.g. claude-main, claude-alt)",
+    )
+    p_import_claude.add_argument(
+        "--project-root",
+        default=".",
+        help="Only import sessions where logged cwd matches this project path",
+    )
+    p_import_claude.add_argument(
+        "--all-projects",
+        action="store_true",
+        help="Import sessions from all project roots instead of filtering",
+    )
+    p_import_claude.add_argument("--limit", type=int, default=200, help="Maximum JSONL files to scan")
+    p_import_claude.set_defaults(func=cmd_import_claude)
 
     return parser
 

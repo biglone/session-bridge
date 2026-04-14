@@ -33,6 +33,16 @@ bridge --db-path .bridge/session-bridge.sqlite import-codex \
   --limit 200
 ```
 
+Import Claude Code project logs as another provider namespace:
+
+```bash
+bridge --db-path .bridge/session-bridge.sqlite import-claude \
+  --projects-root ~/.claude/projects \
+  --provider-label claude-main \
+  --project-root . \
+  --limit 200
+```
+
 ## 4) (Optional) Add a demo session
 
 ```bash
@@ -63,4 +73,5 @@ bridge --db-path .bridge/session-bridge.sqlite resume <bridge-session-id> --max-
 ## Notes
 
 - `import-codex` parses local rollout logs and imports user/assistant turns.
+- `import-claude` parses local Claude project logs and imports user/assistant turns.
 - `sync-demo` remains available for synthetic testing.

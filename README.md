@@ -27,6 +27,7 @@ MVP ready:
 - SQLite bridge store
 - `bridge list` and `bridge resume`
 - `bridge import-codex` for real local Codex rollout logs
+- `bridge import-claude` for real local Claude project logs
 - `bridge sync-demo` for synthetic test data
 
 ## Quick Start

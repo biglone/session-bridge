@@ -1,6 +1,6 @@
 {
   "name": "@biglone/session-bridge",
-  "version": "0.1.11",
+  "version": "0.1.12",
   "description": "Cross-provider Codex session continuity CLI with resume context bridging, .codex history import, SSH clipboard support, and safe provider shim restore",
   "type": "commonjs",
   "license": "MIT",
@@ -37,6 +37,7 @@
   ],
   "bin": {
     "session-bridge": "npm/bin.cjs",
+    "sb": "npm/bin.cjs",
     "session-bridge-plugin": "npm/bin.cjs",
     "codex-session-bridge": "npm/bin.cjs",
     "csbridge": "npm/bin.cjs"

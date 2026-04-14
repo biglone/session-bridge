@@ -18,6 +18,7 @@ Global install (plugin auto-registration runs by default):
 ```bash
 npm install -g @biglone/session-bridge
 session-bridge --help
+sb --help
 session-bridge help
 session-bridge help resume-latest
 ```

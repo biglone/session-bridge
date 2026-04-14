@@ -12,6 +12,12 @@ Global install:
 npm install -g @biglone/session-bridge
 ```
 
+CLI aliases after global install:
+- `session-bridge` (primary)
+- `sb` (short alias)
+- `csbridge`
+- `codex-session-bridge`
+
 ## Why this package
 
 When you switch model providers/accounts, native `/resume` flows are often provider-isolated.

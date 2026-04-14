@@ -6,6 +6,11 @@ The format is based on Keep a Changelog and this project follows Semantic Versio
 
 ## [Unreleased]
 
+## [0.1.12] - 2026-04-15
+
+### Added
+- npm global command alias `sb` (same behavior as `session-bridge`) for faster CLI usage.
+
 ## [0.1.11] - 2026-04-15
 
 ### Fixed
@@ -105,7 +110,8 @@ The format is based on Keep a Changelog and this project follows Semantic Versio
 - Repository consistency section in resume output.
 - NPM launcher with Python runtime bootstrap support.
 
-[Unreleased]: https://github.com/Biglone/session-bridge/compare/v0.1.11...HEAD
+[Unreleased]: https://github.com/Biglone/session-bridge/compare/v0.1.12...HEAD
+[0.1.12]: https://github.com/Biglone/session-bridge/releases/tag/v0.1.12
 [0.1.11]: https://github.com/Biglone/session-bridge/releases/tag/v0.1.11
 [0.1.10]: https://github.com/Biglone/session-bridge/releases/tag/v0.1.10
 [0.1.9]: https://github.com/Biglone/session-bridge/releases/tag/v0.1.9

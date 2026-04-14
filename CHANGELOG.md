@@ -6,6 +6,14 @@ The format is based on Keep a Changelog and this project follows Semantic Versio
 
 ## [Unreleased]
 
+## [0.1.4] - 2026-04-14
+
+### Added
+- `bridge resume` and `bridge resume-latest` now support `--copy` to write generated resume context directly to system clipboard and print a concise continuation hint.
+
+### Changed
+- clarified docs that `resume` / `resume-latest` default to `--max-turns 20`.
+
 ## [0.1.3] - 2026-04-14
 
 ### Added
@@ -46,7 +54,8 @@ The format is based on Keep a Changelog and this project follows Semantic Versio
 - Repository consistency section in resume output.
 - NPM launcher with Python runtime bootstrap support.
 
-[Unreleased]: https://github.com/Biglone/session-bridge/compare/v0.1.3...HEAD
+[Unreleased]: https://github.com/Biglone/session-bridge/compare/v0.1.4...HEAD
+[0.1.4]: https://github.com/Biglone/session-bridge/releases/tag/v0.1.4
 [0.1.3]: https://github.com/Biglone/session-bridge/releases/tag/v0.1.3
 [0.1.2]: https://github.com/Biglone/session-bridge/releases/tag/v0.1.2
 [0.1.1]: https://github.com/Biglone/session-bridge/releases/tag/v0.1.1

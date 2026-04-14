@@ -6,6 +6,11 @@ The format is based on Keep a Changelog and this project follows Semantic Versio
 
 ## [Unreleased]
 
+## [0.1.11] - 2026-04-15
+
+### Fixed
+- fixed GitHub Actions expression validation by removing direct `secrets.*` usage in `if` conditions and handling missing tokens inside shell steps.
+
 ## [0.1.10] - 2026-04-15
 
 ### Changed
@@ -100,7 +105,8 @@ The format is based on Keep a Changelog and this project follows Semantic Versio
 - Repository consistency section in resume output.
 - NPM launcher with Python runtime bootstrap support.
 
-[Unreleased]: https://github.com/Biglone/session-bridge/compare/v0.1.10...HEAD
+[Unreleased]: https://github.com/Biglone/session-bridge/compare/v0.1.11...HEAD
+[0.1.11]: https://github.com/Biglone/session-bridge/releases/tag/v0.1.11
 [0.1.10]: https://github.com/Biglone/session-bridge/releases/tag/v0.1.10
 [0.1.9]: https://github.com/Biglone/session-bridge/releases/tag/v0.1.9
 [0.1.8]: https://github.com/Biglone/session-bridge/releases/tag/v0.1.8

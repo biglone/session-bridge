@@ -22,7 +22,12 @@ This project does not try to reuse vendor-native server session IDs. It rebuilds
 
 ## Status
 
-Scaffold in progress.
+MVP ready:
+
+- SQLite bridge store
+- `bridge list` and `bridge resume`
+- `bridge import-codex` for real local Codex rollout logs
+- `bridge sync-demo` for synthetic test data
 
 ## Quick Start
 

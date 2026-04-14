@@ -1,6 +1,7 @@
 import argparse
 from pathlib import Path
 
+from .adapters.codex_rollout import import_codex_rollouts
 from .models import BridgeSession, BridgeTurn
 from .resume import build_resume_context
 from .storage import BridgeStore
@@ -70,6 +71,24 @@ def cmd_resume(args: argparse.Namespace) -> int:
     return 0
 
 
+def cmd_import_codex(args: argparse.Namespace) -> int:
+    store = _store_from_args(args)
+    project_root_filter = None if args.all_projects else str(Path(args.project_root).resolve())
+    stats = import_codex_rollouts(
+        store=store,
+        sessions_root=Path(args.sessions_root),
+        provider_label=args.provider_label,
+        project_root_filter=project_root_filter,
+        limit=args.limit,
+    )
+    print(
+        "Import finished: "
+        f"scanned={stats.scanned} imported={stats.imported} "
+        f"skipped_project={stats.skipped_project} skipped_invalid={stats.skipped_invalid}"
+    )
+    return 0
+
+
 def build_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(prog="bridge", description="Codex session bridge CLI")
     parser.add_argument(
@@ -111,6 +130,33 @@ def build_parser() -> argparse.ArgumentParser:
     p_resume.add_argument("session_id", help="Bridge session id")
     p_resume.add_argument("--max-turns", type=int, default=20, help="Recent turns to include")
     p_resume.set_defaults(func=cmd_resume)
+
+    p_import = subparsers.add_parser(
+        "import-codex",
+        help="Import real Codex rollout sessions from ~/.codex/sessions into bridge store",
+    )
+    p_import.add_argument(
+        "--sessions-root",
+        default="~/.codex/sessions",
+        help="Path to Codex sessions root directory",
+    )
+    p_import.add_argument(
+        "--provider-label",
+        default="codex",
+        help="Provider label namespace (e.g. codex-openai-a, codex-openai-b)",
+    )
+    p_import.add_argument(
+        "--project-root",
+        default=".",
+        help="Only import sessions where logged cwd matches this project path",
+    )
+    p_import.add_argument(
+        "--all-projects",
+        action="store_true",
+        help="Import sessions from all project roots instead of filtering",
+    )
+    p_import.add_argument("--limit", type=int, default=200, help="Maximum rollout files to scan")
+    p_import.set_defaults(func=cmd_import_codex)
 
     return parser
 

@@ -150,3 +150,16 @@ class BridgeStore:
                 """,
                 ((t.session_id, t.role, t.content, t.created_at) for t in turns),
             )
+
+    def replace_turns(self, session_id: str, turns: Iterable[BridgeTurn]) -> None:
+        rows = [(t.session_id, t.role, t.content, t.created_at) for t in turns]
+        with self._connect() as conn:
+            conn.execute("DELETE FROM turns WHERE session_id = ?", (session_id,))
+            if rows:
+                conn.executemany(
+                    """
+                    INSERT INTO turns (session_id, role, content, created_at)
+                    VALUES (?, ?, ?, ?)
+                    """,
+                    rows,
+                )

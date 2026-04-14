@@ -1,10 +1,15 @@
 from dataclasses import dataclass
 from datetime import datetime, timezone
-from uuid import uuid4
+from uuid import NAMESPACE_URL, uuid4, uuid5
 
 
 def utc_now_iso() -> str:
     return datetime.now(timezone.utc).replace(microsecond=0).isoformat()
+
+
+def stable_session_id(provider: str, provider_session_id: str, project_root: str) -> str:
+    key = f"{provider}|{provider_session_id}|{project_root}"
+    return str(uuid5(NAMESPACE_URL, key))
 
 
 @dataclass(slots=True)
@@ -41,6 +46,32 @@ class BridgeSession:
             summary=summary,
             created_at=now,
             updated_at=now,
+            git_branch=git_branch,
+            git_commit=git_commit,
+        )
+
+    @classmethod
+    def from_provider(
+        cls,
+        provider: str,
+        provider_session_id: str,
+        project_root: str,
+        title: str,
+        summary: str,
+        created_at: str,
+        updated_at: str,
+        git_branch: str = "",
+        git_commit: str = "",
+    ) -> "BridgeSession":
+        return cls(
+            id=stable_session_id(provider, provider_session_id, project_root),
+            provider=provider,
+            provider_session_id=provider_session_id,
+            project_root=project_root,
+            title=title,
+            summary=summary,
+            created_at=created_at,
+            updated_at=updated_at,
             git_branch=git_branch,
             git_commit=git_commit,
         )

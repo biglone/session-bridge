@@ -1,0 +1,15 @@
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+.venv/
+.pytest_cache/
+
+# Build artifacts
+build/
+dist/
+
+# Local data
+.bridge/
+*.db
+*.sqlite

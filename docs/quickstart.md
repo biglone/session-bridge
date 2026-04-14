@@ -22,6 +22,15 @@ session-bridge help
 session-bridge help resume-latest
 ```
 
+SSH daily workflow helper (run on your local Mac terminal; copies remote resume output into local clipboard):
+
+```bash
+session-bridge copy-local \
+  --host jetson \
+  --remote-project-root ~/workspace/video-automation \
+  --max-turns 100
+```
+
 Skip auto-registration on global install:
 
 ```bash
@@ -183,11 +192,57 @@ Show current installed version:
 ./bin/bridge version
 ```
 
+## 7) Provider shim (for Codex `/resume` cross-provider loading)
+
+Apply shim for current project (backup + rewrite non-target threads):
+
+```bash
+./bin/bridge shim apply \
+  --cwd .
+```
+
+Check shim history:
+
+```bash
+./bin/bridge shim status --cwd .
+```
+
+Restore latest pending shim (or pass `--run-id`):
+
+```bash
+./bin/bridge shim restore --cwd .
+```
+
+Wrap Codex launch with auto restore (recommended):
+
+```bash
+./bin/bridge shim run \
+  --cwd . \
+  -- codex
+```
+
+By default, target provider is auto-detected from `~/.codex/config.toml` top-level `model_provider`.
+If needed, override explicitly:
+
+```bash
+./bin/bridge shim apply --cwd . --target-provider codexzh
+```
+
+Optional: keep shape aligned with latest target-provider thread:
+
+```bash
+./bin/bridge shim apply \
+  --cwd . \
+  --target-provider codexzh \
+  --template-align
+```
+
 ## Notes
 
 - `import-codex` parses local rollout logs and imports user/assistant turns.
 - `import-claude` parses local Claude project logs and imports user/assistant turns.
 - `import-all` runs both import pipelines in one command.
+- `shim` modifies local Codex history files and `~/.codex/state_5.sqlite` thread metadata; always restore after use.
 - `sync-demo` remains available for synthetic testing.
 - imports sanitize common secret patterns (`api_key`, `access_token`, bearer headers, `sk-...`) before writing to SQLite.
 

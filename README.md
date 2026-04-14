@@ -36,6 +36,8 @@ Release-candidate baseline:
 - `bridge import-all` to ingest both providers in one command
 - `bridge list` / `bridge resume-latest` auto-scan project-local `.codex` histories, then fallback to home `~/.codex` histories (including multi-account subpaths) before reading store
 - `bridge resume` supports optional `--copy`; `bridge resume-latest` defaults to clipboard copy and supports `--no-copy`
+- `bridge copy-local` runs remote `resume-latest` over SSH and copies the result into local clipboard (useful for SSH-first workflows)
+- `bridge shim apply/restore/status/run` to temporarily rewrite Codex `model_provider` metadata for cross-provider `/resume`, with backup + restore manifests
 - `bridge version` prints the current CLI/package version
 - `bridge install-plugin` to register into `~/.agents/plugins/marketplace.json`
 - `bridge sync-demo` for synthetic test data

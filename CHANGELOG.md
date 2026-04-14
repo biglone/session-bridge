@@ -6,10 +6,23 @@ The format is based on Keep a Changelog and this project follows Semantic Versio
 
 ## [Unreleased]
 
+## [0.1.7] - 2026-04-15
+
+### Added
+- `bridge shim apply` to snapshot and rewrite Codex thread `model_provider` metadata for one project, including rollout JSONL backup and SQLite row backup.
+- `bridge shim restore` to revert a shim run (latest pending by default) with conflict checks and optional `--force`.
+- `bridge shim status` to inspect recent shim runs under `.bridge/provider-shim`.
+- `bridge shim run` wrapper to auto-apply shim, execute a command (default `codex`), then auto-restore.
+
+### Changed
+- provider shim internals now fall back safely when rollout paths are outside `codex_home` and tolerate thread schemas missing `updated_at`.
+- `bridge shim apply` / `bridge shim run` now auto-detect `--target-provider` from `~/.codex/config.toml` top-level `model_provider` when flag is omitted.
+
 ## [0.1.6] - 2026-04-14
 
 ### Added
 - `bridge help` subcommand (including `bridge help <command>`) as an alias-style help entrypoint.
+- new `bridge copy-local` command to run remote `resume-latest` via SSH and copy output into local clipboard.
 
 ### Changed
 - clipboard copy now falls back to OSC52 terminal escape in environments without `pbcopy/wl-copy/xclip/xsel` (for example SSH sessions), improving `resume-latest --copy` behavior.
@@ -70,7 +83,8 @@ The format is based on Keep a Changelog and this project follows Semantic Versio
 - Repository consistency section in resume output.
 - NPM launcher with Python runtime bootstrap support.
 
-[Unreleased]: https://github.com/Biglone/session-bridge/compare/v0.1.6...HEAD
+[Unreleased]: https://github.com/Biglone/session-bridge/compare/v0.1.7...HEAD
+[0.1.7]: https://github.com/Biglone/session-bridge/releases/tag/v0.1.7
 [0.1.6]: https://github.com/Biglone/session-bridge/releases/tag/v0.1.6
 [0.1.5]: https://github.com/Biglone/session-bridge/releases/tag/v0.1.5
 [0.1.4]: https://github.com/Biglone/session-bridge/releases/tag/v0.1.4

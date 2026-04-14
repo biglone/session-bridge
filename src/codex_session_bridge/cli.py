@@ -3,6 +3,7 @@ import base64
 import importlib.metadata
 import os
 import re
+import shlex
 import shutil
 import subprocess
 import sys
@@ -14,6 +15,7 @@ from .consistency import build_git_consistency_section
 from .installer import install_home_plugin
 from .models import BridgeSession, BridgeTurn
 from .resume import build_resume_context
+from .shim import apply_provider_shim, list_shim_runs, restore_provider_shim
 from .storage import BridgeStore
 
 
@@ -43,6 +45,53 @@ def _resolve_project_codex_root(project_root: Path, codex_dir: str) -> Path:
     if raw.is_absolute():
         return raw.resolve()
     return (project_root / raw).resolve()
+
+
+def _detect_model_provider_from_config(codex_home: Path) -> str:
+    config_path = codex_home.expanduser().resolve() / "config.toml"
+    if not config_path.exists():
+        return ""
+
+    text = config_path.read_text(encoding="utf-8", errors="replace")
+    try:
+        import tomllib  # Python 3.11+
+
+        parsed = tomllib.loads(text)
+        value = parsed.get("model_provider")
+        if isinstance(value, str) and value.strip():
+            return value.strip()
+    except Exception:
+        pass
+
+    pattern = re.compile(r'^model_provider\s*=\s*["\']([^"\']+)["\']\s*$')
+    for raw_line in text.splitlines():
+        line = raw_line.split("#", 1)[0].strip()
+        if not line:
+            continue
+        if line.startswith("["):
+            continue
+        match = pattern.match(line)
+        if match:
+            candidate = match.group(1).strip()
+            if candidate:
+                return candidate
+    return ""
+
+
+def _resolve_target_provider(target_provider: str, codex_home: Path) -> str:
+    explicit = str(target_provider or "").strip()
+    if explicit:
+        return explicit
+
+    detected = _detect_model_provider_from_config(codex_home)
+    if detected:
+        return detected
+
+    config_path = codex_home.expanduser().resolve() / "config.toml"
+    raise SystemExit(
+        "Unable to determine target provider. "
+        f"Set --target-provider explicitly or configure model_provider in {config_path}"
+    )
 
 
 def _discover_codex_session_roots(codex_root: Path) -> list[Path]:
@@ -423,6 +472,194 @@ def cmd_import_all(args: argparse.Namespace) -> int:
     return 0
 
 
+def cmd_copy_local(args: argparse.Namespace) -> int:
+    remote_project_root = str(getattr(args, "remote_project_root", ".") or ".")
+    remote_bin = str(getattr(args, "remote_bin", "session-bridge") or "session-bridge")
+    remote_db_path = str(getattr(args, "remote_db_path", "") or "").strip()
+
+    remote_parts: list[str] = [remote_bin]
+    if remote_db_path:
+        remote_parts.extend(["--db-path", remote_db_path])
+    remote_parts.extend(
+        [
+            "resume-latest",
+            "--project-root",
+            ".",
+            "--no-copy",
+            "--max-turns",
+            str(args.max_turns),
+        ]
+    )
+    if args.provider:
+        remote_parts.extend(["--provider", args.provider])
+    if bool(getattr(args, "no_consistency_check", False)):
+        remote_parts.append("--no-consistency-check")
+    if bool(getattr(args, "no_scan_project_codex", False)):
+        remote_parts.append("--no-scan-project-codex")
+    if bool(getattr(args, "no_scan_home_codex", False)):
+        remote_parts.append("--no-scan-home-codex")
+
+    remote_command = " ".join(shlex.quote(part) for part in remote_parts)
+    ssh_command = f"cd {shlex.quote(remote_project_root)} && {remote_command}"
+    result = subprocess.run(
+        [str(args.ssh_bin), "-T", str(args.host), ssh_command],
+        capture_output=True,
+        text=True,
+    )
+
+    if result.returncode != 0:
+        print(
+            f"Remote command failed via SSH target={args.host} exit_code={result.returncode}",
+            file=sys.stderr,
+        )
+        if result.stderr:
+            print(result.stderr.rstrip(), file=sys.stderr)
+        return result.returncode
+
+    content = result.stdout
+    if not content.strip():
+        print("Remote command succeeded but produced empty output.", file=sys.stderr)
+        return 1
+
+    copied, method = _copy_to_clipboard(content)
+    if copied:
+        print(
+            f"Remote resume context copied to local clipboard via '{method}'. "
+            f"source={args.host}:{remote_project_root}"
+        )
+        print(f"chars={len(content)}")
+        return 0
+
+    print(
+        "Local clipboard copy failed; printing remote resume context below.",
+        file=sys.stderr,
+    )
+    print(content)
+    return 0
+
+
+def cmd_shim_apply(args: argparse.Namespace) -> int:
+    cwd = Path(args.cwd).expanduser().resolve()
+    codex_home = Path(args.codex_home)
+    target_provider = _resolve_target_provider(str(getattr(args, "target_provider", "")), codex_home)
+    result = apply_provider_shim(
+        cwd=cwd,
+        target_provider=target_provider,
+        codex_home=codex_home,
+        run_id=str(args.run_id).strip() or None,
+        template_align=bool(args.template_align),
+        dry_run=bool(args.dry_run),
+    )
+    print(
+        "Shim apply finished: "
+        f"run_id={result.run_id} dry_run={result.dry_run} "
+        f"candidate_threads={result.candidate_threads} changed_files={result.changed_files} "
+        f"changed_rows={result.changed_rows} template_align={result.template_align}"
+    )
+    if result.template_thread_id:
+        print(f"template_thread_id={result.template_thread_id}")
+    print(f"manifest={result.manifest_path}")
+    return 0
+
+
+def cmd_shim_restore(args: argparse.Namespace) -> int:
+    cwd = Path(args.cwd).expanduser().resolve()
+    result = restore_provider_shim(
+        cwd=cwd,
+        run_id=str(args.run_id).strip() or None,
+        force=bool(args.force),
+    )
+    print(
+        "Shim restore finished: "
+        f"run_id={result.run_id} restored_files={result.restored_files} "
+        f"restored_rows={result.restored_rows} "
+        f"skipped_file_conflicts={result.skipped_file_conflicts} "
+        f"skipped_row_conflicts={result.skipped_row_conflicts}"
+    )
+    print(f"manifest={result.manifest_path}")
+    return 0
+
+
+def cmd_shim_status(args: argparse.Namespace) -> int:
+    cwd = Path(args.cwd).expanduser().resolve()
+    runs = list_shim_runs(cwd=cwd, limit=int(args.limit))
+    if not runs:
+        print(f"No shim runs for {cwd}")
+        return 0
+
+    for run in runs:
+        print(
+            f"{run['run_id']} | {run['status']} | {run['created_at']} | "
+            f"target={run['target_provider']} | files={run['changed_files']} rows={run['changed_rows']}"
+        )
+    return 0
+
+
+def _normalize_shim_run_command(command: list[str]) -> list[str]:
+    cmd = list(command or [])
+    if cmd and cmd[0] == "--":
+        cmd = cmd[1:]
+    return cmd
+
+
+def cmd_shim_run(args: argparse.Namespace) -> int:
+    cwd = Path(args.cwd).expanduser().resolve()
+    codex_home = Path(args.codex_home)
+    target_provider = _resolve_target_provider(str(getattr(args, "target_provider", "")), codex_home)
+    result = apply_provider_shim(
+        cwd=cwd,
+        target_provider=target_provider,
+        codex_home=codex_home,
+        run_id=str(args.run_id).strip() or None,
+        template_align=bool(args.template_align),
+        dry_run=False,
+    )
+    print(
+        "Shim apply finished: "
+        f"run_id={result.run_id} candidate_threads={result.candidate_threads} "
+        f"changed_files={result.changed_files} changed_rows={result.changed_rows}"
+    )
+
+    wrapped_command = _normalize_shim_run_command(list(getattr(args, "command", []) or []))
+    if not wrapped_command:
+        wrapped_command = ["codex"]
+    print(f"Executing under shim: {' '.join(shlex.quote(part) for part in wrapped_command)}")
+
+    command_exit_code = 0
+    try:
+        try:
+            command_exit_code = subprocess.run(
+                wrapped_command,
+                cwd=str(cwd),
+            ).returncode
+        except OSError as exc:
+            print(f"Wrapped command failed to start: {exc}", file=sys.stderr)
+            command_exit_code = 127
+    finally:
+        try:
+            restored = restore_provider_shim(
+                cwd=cwd,
+                run_id=result.run_id,
+                force=bool(args.force_restore),
+            )
+            print(
+                "Shim restore finished: "
+                f"run_id={restored.run_id} restored_files={restored.restored_files} "
+                f"restored_rows={restored.restored_rows} "
+                f"skipped_file_conflicts={restored.skipped_file_conflicts} "
+                f"skipped_row_conflicts={restored.skipped_row_conflicts}"
+            )
+        except Exception as exc:
+            print(
+                "Shim restore failed. Manual restore may be required: "
+                f"run_id={result.run_id} error={exc}",
+                file=sys.stderr,
+            )
+            if command_exit_code == 0:
+                return 1
+    return command_exit_code
+
+
 def cmd_install_plugin(args: argparse.Namespace) -> int:
     result = install_home_plugin(
         plugin_source=args.plugin_source,
@@ -697,6 +934,157 @@ def build_parser() -> argparse.ArgumentParser:
         help="Maximum Claude JSONL files to scan",
     )
     p_import_all.set_defaults(func=cmd_import_all)
+
+    p_copy_local = subparsers.add_parser(
+        "copy-local",
+        help="Run remote resume-latest over SSH and copy output into local clipboard",
+    )
+    p_copy_local.add_argument(
+        "--host",
+        required=True,
+        help="SSH target (for example: jetson or user@jetson)",
+    )
+    p_copy_local.add_argument(
+        "--remote-project-root",
+        default=".",
+        help="Remote project root directory (command runs as: cd <dir> && ...)",
+    )
+    p_copy_local.add_argument(
+        "--provider",
+        default="",
+        help="Optional provider filter passed to remote resume-latest",
+    )
+    p_copy_local.add_argument(
+        "--max-turns",
+        type=int,
+        default=100,
+        help="Recent turns to include for remote resume-latest",
+    )
+    p_copy_local.add_argument(
+        "--no-consistency-check",
+        action="store_true",
+        help="Pass through to remote resume-latest",
+    )
+    p_copy_local.add_argument(
+        "--no-scan-project-codex",
+        action="store_true",
+        help="Pass through to remote resume-latest",
+    )
+    p_copy_local.add_argument(
+        "--no-scan-home-codex",
+        action="store_true",
+        help="Pass through to remote resume-latest",
+    )
+    p_copy_local.add_argument(
+        "--remote-db-path",
+        default="",
+        help="Optional remote SQLite db path passed as global --db-path",
+    )
+    p_copy_local.add_argument(
+        "--remote-bin",
+        default="session-bridge",
+        help="Remote session-bridge executable name/path",
+    )
+    p_copy_local.add_argument(
+        "--ssh-bin",
+        default="ssh",
+        help="Local SSH executable to invoke",
+    )
+    p_copy_local.set_defaults(func=cmd_copy_local)
+
+    p_shim = subparsers.add_parser(
+        "shim",
+        help="Temporarily align Codex thread model_provider for cross-provider /resume compatibility",
+    )
+    shim_subparsers = p_shim.add_subparsers(dest="shim_command", required=True)
+
+    p_shim_apply = shim_subparsers.add_parser(
+        "apply",
+        help="Apply provider shim for one project (backs up JSONL and SQLite row values)",
+    )
+    p_shim_apply.add_argument("--cwd", default=".", help="Project cwd to target (default: .)")
+    p_shim_apply.add_argument(
+        "--target-provider",
+        default="",
+        help=(
+            "Provider value to rewrite candidate threads to. "
+            "Default: auto-detect from <codex-home>/config.toml model_provider"
+        ),
+    )
+    p_shim_apply.add_argument(
+        "--codex-home",
+        default="~/.codex",
+        help="Codex home directory containing state_5.sqlite and sessions (default: ~/.codex)",
+    )
+    p_shim_apply.add_argument("--run-id", default="", help="Optional explicit shim run id")
+    p_shim_apply.add_argument(
+        "--template-align",
+        action="store_true",
+        help="Also align compatible payload/SQLite fields to latest target-provider thread shape",
+    )
+    p_shim_apply.add_argument(
+        "--dry-run",
+        action="store_true",
+        help="Compute and persist manifest only; do not mutate rollout files or SQLite",
+    )
+    p_shim_apply.set_defaults(func=cmd_shim_apply)
+
+    p_shim_restore = shim_subparsers.add_parser(
+        "restore",
+        help="Restore one shim run from backup manifest (latest pending run by default)",
+    )
+    p_shim_restore.add_argument("--cwd", default=".", help="Project cwd to target (default: .)")
+    p_shim_restore.add_argument("--run-id", default="", help="Shim run id to restore (optional)")
+    p_shim_restore.add_argument(
+        "--force",
+        action="store_true",
+        help="Force restore even if current files/rows no longer match expected shim-applied values",
+    )
+    p_shim_restore.set_defaults(func=cmd_shim_restore)
+
+    p_shim_status = shim_subparsers.add_parser(
+        "status",
+        help="List recent shim runs for current project",
+    )
+    p_shim_status.add_argument("--cwd", default=".", help="Project cwd to inspect (default: .)")
+    p_shim_status.add_argument("--limit", type=int, default=20, help="Maximum shim runs to show")
+    p_shim_status.set_defaults(func=cmd_shim_status)
+
+    p_shim_run = shim_subparsers.add_parser(
+        "run",
+        help="Apply shim, run a command (default: codex), then auto-restore",
+    )
+    p_shim_run.add_argument("--cwd", default=".", help="Project cwd to target (default: .)")
+    p_shim_run.add_argument(
+        "--target-provider",
+        default="",
+        help=(
+            "Provider value to rewrite candidate threads to during wrapped command execution. "
+            "Default: auto-detect from <codex-home>/config.toml model_provider"
+        ),
+    )
+    p_shim_run.add_argument(
+        "--codex-home",
+        default="~/.codex",
+        help="Codex home directory containing state_5.sqlite and sessions (default: ~/.codex)",
+    )
+    p_shim_run.add_argument("--run-id", default="", help="Optional explicit shim run id")
+    p_shim_run.add_argument(
+        "--template-align",
+        action="store_true",
+        help="Also align compatible payload/SQLite fields to latest target-provider thread shape",
+    )
+    p_shim_run.add_argument(
+        "--force-restore",
+        action="store_true",
+        help="Force restore even if file/row conflict is detected at restore time",
+    )
+    p_shim_run.add_argument(
+        "command",
+        nargs=argparse.REMAINDER,
+        help="Wrapped command to execute after apply. Use '-- <command ...>' to avoid parser ambiguity.",
+    )
+    p_shim_run.set_defaults(func=cmd_shim_run)
 
     p_install = subparsers.add_parser(
         "install-plugin",

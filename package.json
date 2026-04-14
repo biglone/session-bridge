@@ -1,6 +1,6 @@
 {
   "name": "@biglone/session-bridge",
-  "version": "0.1.2",
+  "version": "0.1.3",
   "description": "Cross-provider session bridge plugin/CLI for Codex workflows",
   "type": "commonjs",
   "license": "MIT",

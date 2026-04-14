@@ -55,6 +55,9 @@ def test_list_auto_scans_project_codex_directory(tmp_path: Path, capsys) -> None
         project_codex_dir=".codex",
         project_codex_limit=50,
         no_scan_project_codex=False,
+        home_codex_dir=str(tmp_path / "home-codex"),
+        home_codex_limit=50,
+        no_scan_home_codex=True,
     )
     code = cmd_list(args)
     out = capsys.readouterr().out
@@ -84,6 +87,9 @@ def test_list_no_scan_project_codex_keeps_previous_behavior(tmp_path: Path, caps
         project_codex_dir=".codex",
         project_codex_limit=50,
         no_scan_project_codex=True,
+        home_codex_dir=str(tmp_path / "home-codex"),
+        home_codex_limit=50,
+        no_scan_home_codex=True,
     )
     code = cmd_list(args)
     out = capsys.readouterr().out
@@ -119,6 +125,9 @@ def test_list_merges_multiple_project_codex_accounts(tmp_path: Path, capsys) -> 
         project_codex_dir=".codex",
         project_codex_limit=50,
         no_scan_project_codex=False,
+        home_codex_dir=str(tmp_path / "home-codex"),
+        home_codex_limit=50,
+        no_scan_home_codex=True,
     )
     code = cmd_list(args)
     out = capsys.readouterr().out
@@ -147,6 +156,9 @@ def test_resume_latest_auto_scans_project_codex_directory(tmp_path: Path, capsys
         project_codex_dir=".codex",
         project_codex_limit=50,
         no_scan_project_codex=False,
+        home_codex_dir=str(tmp_path / "home-codex"),
+        home_codex_limit=50,
+        no_scan_home_codex=True,
         max_turns=10,
         no_consistency_check=True,
     )
@@ -156,3 +168,68 @@ def test_resume_latest_auto_scans_project_codex_directory(tmp_path: Path, capsys
     assert code == 0
     assert "provider: codex-project:openai" in out
     assert "resume this work" in out
+
+
+def test_list_auto_scans_home_codex_directory_when_project_codex_missing(tmp_path: Path, capsys) -> None:
+    project_root = tmp_path / "repo"
+    project_root.mkdir(parents=True, exist_ok=True)
+    home_codex_root = tmp_path / "home-codex"
+    rollout = home_codex_root / "sessions" / "2026" / "04" / "14" / "rollout-1.jsonl"
+    _write_rollout(
+        rollout,
+        cwd=str(project_root.resolve()),
+        sid="sid-home-1",
+        user_message="continue from home codex",
+        assistant_message="done",
+    )
+
+    args = argparse.Namespace(
+        db_path=str(tmp_path / "bridge.sqlite"),
+        project_root=str(project_root),
+        limit=10,
+        provider="",
+        project_codex_dir=".codex",
+        project_codex_limit=50,
+        no_scan_project_codex=False,
+        home_codex_dir=str(home_codex_root),
+        home_codex_limit=50,
+        no_scan_home_codex=False,
+    )
+    code = cmd_list(args)
+    out = capsys.readouterr().out
+
+    assert code == 0
+    assert "codex-home:openai" in out
+    assert "continue from home codex" in out
+
+
+def test_list_can_disable_home_codex_scan(tmp_path: Path, capsys) -> None:
+    project_root = tmp_path / "repo"
+    project_root.mkdir(parents=True, exist_ok=True)
+    home_codex_root = tmp_path / "home-codex"
+    rollout = home_codex_root / "sessions" / "2026" / "04" / "14" / "rollout-1.jsonl"
+    _write_rollout(
+        rollout,
+        cwd=str(project_root.resolve()),
+        sid="sid-home-2",
+        user_message="home session only",
+        assistant_message="done",
+    )
+
+    args = argparse.Namespace(
+        db_path=str(tmp_path / "bridge.sqlite"),
+        project_root=str(project_root),
+        limit=10,
+        provider="",
+        project_codex_dir=".codex",
+        project_codex_limit=50,
+        no_scan_project_codex=False,
+        home_codex_dir=str(home_codex_root),
+        home_codex_limit=50,
+        no_scan_home_codex=True,
+    )
+    code = cmd_list(args)
+    out = capsys.readouterr().out
+
+    assert code == 0
+    assert "No bridge sessions for" in out

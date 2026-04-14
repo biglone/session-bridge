@@ -6,6 +6,18 @@ The format is based on Keep a Changelog and this project follows Semantic Versio
 
 ## [Unreleased]
 
+## [0.1.3] - 2026-04-14
+
+### Added
+- `bridge list` and `bridge resume-latest` now also auto-scan home-level `~/.codex` history so same-project sessions remain visible across provider/account switches.
+
+### Changed
+- added CLI flags for home-level scan control:
+  - `--home-codex-dir`
+  - `--home-codex-limit`
+  - `--no-scan-home-codex`
+- expanded tests to cover home-level fallback scanning behavior.
+
 ## [0.1.2] - 2026-04-14
 
 ### Added
@@ -34,7 +46,8 @@ The format is based on Keep a Changelog and this project follows Semantic Versio
 - Repository consistency section in resume output.
 - NPM launcher with Python runtime bootstrap support.
 
-[Unreleased]: https://github.com/Biglone/session-bridge/compare/v0.1.2...HEAD
+[Unreleased]: https://github.com/Biglone/session-bridge/compare/v0.1.3...HEAD
+[0.1.3]: https://github.com/Biglone/session-bridge/releases/tag/v0.1.3
 [0.1.2]: https://github.com/Biglone/session-bridge/releases/tag/v0.1.2
 [0.1.1]: https://github.com/Biglone/session-bridge/releases/tag/v0.1.1
 [0.1.0]: https://github.com/Biglone/session-bridge/releases/tag/v0.1.0

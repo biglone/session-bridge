@@ -49,8 +49,7 @@ def _slug(text: str) -> str:
     return out or "x"
 
 
-def _provider_label_for_project_sessions(codex_root: Path, sessions_root: Path) -> str:
-    base = "codex-project"
+def _provider_label_for_sessions_root(base: str, codex_root: Path, sessions_root: Path) -> str:
     try:
         rel = sessions_root.resolve().relative_to(codex_root.resolve())
     except ValueError:
@@ -62,26 +61,59 @@ def _provider_label_for_project_sessions(codex_root: Path, sessions_root: Path) 
     return f"{base}-{'-'.join(account_parts)}"
 
 
-def _auto_import_project_codex(
+def _auto_import_codex_from_root(
     store: BridgeStore,
     project_root: str,
-    codex_dir: str = ".codex",
-    limit: int = 200,
+    codex_root: Path,
+    provider_label_base: str,
+    limit: int,
 ) -> None:
     project_path = Path(project_root).resolve()
-    codex_root = _resolve_project_codex_root(project_path, codex_dir)
     session_roots = _discover_codex_session_roots(codex_root)
     if not session_roots:
         return
 
     for sessions_root in session_roots:
-        provider_label = _provider_label_for_project_sessions(codex_root, sessions_root)
+        provider_label = _provider_label_for_sessions_root(provider_label_base, codex_root, sessions_root)
         import_codex_rollouts(
             store=store,
             sessions_root=sessions_root,
             provider_label=provider_label,
             project_root_filter=str(project_path),
             limit=limit,
+        )
+
+
+def _auto_import_codex_sources(
+    store: BridgeStore,
+    project_root: str,
+    scan_project_codex: bool = True,
+    project_codex_dir: str = ".codex",
+    project_codex_limit: int = 200,
+    scan_home_codex: bool = True,
+    home_codex_dir: str = "~/.codex",
+    home_codex_limit: int = 2000,
+) -> None:
+    project_path = Path(project_root).resolve()
+
+    if scan_project_codex:
+        project_codex_root = _resolve_project_codex_root(project_path, project_codex_dir)
+        _auto_import_codex_from_root(
+            store=store,
+            project_root=str(project_path),
+            codex_root=project_codex_root,
+            provider_label_base="codex-project",
+            limit=project_codex_limit,
+        )
+
+    if scan_home_codex:
+        home_codex_root = Path(home_codex_dir).expanduser().resolve()
+        _auto_import_codex_from_root(
+            store=store,
+            project_root=str(project_path),
+            codex_root=home_codex_root,
+            provider_label_base="codex-home",
+            limit=home_codex_limit,
         )
 
 
@@ -117,13 +149,16 @@ def cmd_sync_demo(args: argparse.Namespace) -> int:
 def cmd_list(args: argparse.Namespace) -> int:
     store = _store_from_args(args)
     project_root = str(Path(args.project_root).resolve())
-    if not bool(getattr(args, "no_scan_project_codex", False)):
-        _auto_import_project_codex(
-            store=store,
-            project_root=project_root,
-            codex_dir=str(getattr(args, "project_codex_dir", ".codex")),
-            limit=int(getattr(args, "project_codex_limit", 200)),
-        )
+    _auto_import_codex_sources(
+        store=store,
+        project_root=project_root,
+        scan_project_codex=not bool(getattr(args, "no_scan_project_codex", False)),
+        project_codex_dir=str(getattr(args, "project_codex_dir", ".codex")),
+        project_codex_limit=int(getattr(args, "project_codex_limit", 200)),
+        scan_home_codex=not bool(getattr(args, "no_scan_home_codex", False)),
+        home_codex_dir=str(getattr(args, "home_codex_dir", "~/.codex")),
+        home_codex_limit=int(getattr(args, "home_codex_limit", 2000)),
+    )
     sessions = store.list_sessions(
         project_root=project_root,
         limit=args.limit,
@@ -166,13 +201,16 @@ def _print_resume(store: BridgeStore, session_id: str, max_turns: int, no_consis
 def cmd_resume_latest(args: argparse.Namespace) -> int:
     store = _store_from_args(args)
     project_root = str(Path(args.project_root).resolve())
-    if not bool(getattr(args, "no_scan_project_codex", False)):
-        _auto_import_project_codex(
-            store=store,
-            project_root=project_root,
-            codex_dir=str(getattr(args, "project_codex_dir", ".codex")),
-            limit=int(getattr(args, "project_codex_limit", 200)),
-        )
+    _auto_import_codex_sources(
+        store=store,
+        project_root=project_root,
+        scan_project_codex=not bool(getattr(args, "no_scan_project_codex", False)),
+        project_codex_dir=str(getattr(args, "project_codex_dir", ".codex")),
+        project_codex_limit=int(getattr(args, "project_codex_limit", 200)),
+        scan_home_codex=not bool(getattr(args, "no_scan_home_codex", False)),
+        home_codex_dir=str(getattr(args, "home_codex_dir", "~/.codex")),
+        home_codex_limit=int(getattr(args, "home_codex_limit", 2000)),
+    )
     session = store.get_latest_session(project_root=project_root, provider_filter=args.provider)
     if session is None:
         hint = f" provider filter={args.provider!r}" if args.provider else ""
@@ -321,6 +359,22 @@ def build_parser() -> argparse.ArgumentParser:
         action="store_true",
         help="Disable auto-import from project-local Codex directory before listing",
     )
+    p_list.add_argument(
+        "--home-codex-dir",
+        default="~/.codex",
+        help="Home Codex directory to scan before listing (default: ~/.codex)",
+    )
+    p_list.add_argument(
+        "--home-codex-limit",
+        type=int,
+        default=2000,
+        help="Maximum rollout files to scan per discovered home Codex sessions root",
+    )
+    p_list.add_argument(
+        "--no-scan-home-codex",
+        action="store_true",
+        help="Disable auto-import from home Codex directory before listing",
+    )
     p_list.set_defaults(func=cmd_list)
 
     p_resume = subparsers.add_parser("resume", help="Build resume context from bridge session")
@@ -358,6 +412,22 @@ def build_parser() -> argparse.ArgumentParser:
         "--no-scan-project-codex",
         action="store_true",
         help="Disable auto-import from project-local Codex directory before resolving latest session",
+    )
+    p_resume_latest.add_argument(
+        "--home-codex-dir",
+        default="~/.codex",
+        help="Home Codex directory to scan before resolving latest session (default: ~/.codex)",
+    )
+    p_resume_latest.add_argument(
+        "--home-codex-limit",
+        type=int,
+        default=2000,
+        help="Maximum rollout files to scan per discovered home Codex sessions root",
+    )
+    p_resume_latest.add_argument(
+        "--no-scan-home-codex",
+        action="store_true",
+        help="Disable auto-import from home Codex directory before resolving latest session",
     )
     p_resume_latest.add_argument("--max-turns", type=int, default=20, help="Recent turns to include")
     p_resume_latest.add_argument(

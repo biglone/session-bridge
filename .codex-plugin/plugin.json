@@ -1,0 +1,41 @@
+{
+  "name": "codex-session-bridge",
+  "version": "0.1.0",
+  "description": "Cross-provider session bridge for Codex workflows",
+  "author": {
+    "name": "Biglone",
+    "email": "todo@example.com",
+    "url": "https://github.com/Biglone"
+  },
+  "homepage": "https://github.com/Biglone/codex-session-bridge-plugin",
+  "repository": "https://github.com/Biglone/codex-session-bridge-plugin",
+  "license": "MIT",
+  "keywords": [
+    "codex",
+    "session",
+    "bridge",
+    "resume"
+  ],
+  "skills": "./skills/",
+  "interface": {
+    "displayName": "Session Bridge",
+    "shortDescription": "Cross-provider session continuity",
+    "longDescription": "Sync and recover session context across different Codex providers/accounts.",
+    "developerName": "Biglone",
+    "category": "Productivity",
+    "capabilities": [
+      "Read",
+      "Write",
+      "Interactive"
+    ],
+    "websiteURL": "https://github.com/Biglone/codex-session-bridge-plugin",
+    "privacyPolicyURL": "https://example.com/privacy",
+    "termsOfServiceURL": "https://example.com/terms",
+    "defaultPrompt": [
+      "Sync current provider conversation into the unified bridge store.",
+      "Show my latest bridge sessions for this repository.",
+      "Resume my most recent cross-provider coding task."
+    ],
+    "brandColor": "#0F766E"
+  }
+}

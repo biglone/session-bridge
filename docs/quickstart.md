@@ -7,10 +7,23 @@ cd /home/Biglone/workspace/codex-session-bridge-plugin
 python3 -m pip install -e .
 ```
 
+If your system blocks global pip install (PEP 668), use local venv setup:
+
+```bash
+cd /home/Biglone/workspace/codex-session-bridge-plugin
+./scripts/setup_venv.sh
+```
+
+Then run via local launcher (works with or without editable install):
+
+```bash
+./bin/bridge --help
+```
+
 ## 1.5) Register plugin into Codex local marketplace (one-time)
 
 ```bash
-bridge install-plugin --plugin-source /home/Biglone/workspace/codex-session-bridge-plugin
+./bin/bridge install-plugin --plugin-source /home/Biglone/workspace/codex-session-bridge-plugin
 ```
 
 This creates:
@@ -21,13 +34,13 @@ This creates:
 ## 2) Initialize bridge database
 
 ```bash
-bridge --db-path .bridge/session-bridge.sqlite init
+./bin/bridge --db-path .bridge/session-bridge.sqlite init
 ```
 
 ## 3) Import real Codex sessions from local history
 
 ```bash
-bridge --db-path .bridge/session-bridge.sqlite import-codex \
+./bin/bridge --db-path .bridge/session-bridge.sqlite import-codex \
   --sessions-root ~/.codex/sessions \
   --provider-label codex-openai-a \
   --project-root . \
@@ -37,7 +50,7 @@ bridge --db-path .bridge/session-bridge.sqlite import-codex \
 If you use another Codex account/provider profile, import it into a separate namespace:
 
 ```bash
-bridge --db-path .bridge/session-bridge.sqlite import-codex \
+./bin/bridge --db-path .bridge/session-bridge.sqlite import-codex \
   --sessions-root ~/another-profile/.codex/sessions \
   --provider-label codex-openai-b \
   --project-root . \
@@ -47,7 +60,7 @@ bridge --db-path .bridge/session-bridge.sqlite import-codex \
 Import Claude Code project logs as another provider namespace:
 
 ```bash
-bridge --db-path .bridge/session-bridge.sqlite import-claude \
+./bin/bridge --db-path .bridge/session-bridge.sqlite import-claude \
   --projects-root ~/.claude/projects \
   --provider-label claude-main \
   --project-root . \
@@ -57,7 +70,7 @@ bridge --db-path .bridge/session-bridge.sqlite import-claude \
 Or run one command for both sources:
 
 ```bash
-bridge --db-path .bridge/session-bridge.sqlite import-all \
+./bin/bridge --db-path .bridge/session-bridge.sqlite import-all \
   --project-root . \
   --codex-provider-label codex-openai-a \
   --claude-provider-label claude-main \
@@ -68,7 +81,7 @@ bridge --db-path .bridge/session-bridge.sqlite import-all \
 ## 4) (Optional) Add a demo session
 
 ```bash
-bridge --db-path .bridge/session-bridge.sqlite sync-demo \
+./bin/bridge --db-path .bridge/session-bridge.sqlite sync-demo \
   --provider vendor-a \
   --provider-session-id sess-001 \
   --project-root . \
@@ -83,25 +96,25 @@ bridge --db-path .bridge/session-bridge.sqlite sync-demo \
 ## 5) List recent sessions
 
 ```bash
-bridge --db-path .bridge/session-bridge.sqlite list --project-root . --limit 10
+./bin/bridge --db-path .bridge/session-bridge.sqlite list --project-root . --limit 10
 ```
 
 Filter by provider keyword (case-insensitive):
 
 ```bash
-bridge --db-path .bridge/session-bridge.sqlite list --project-root . --provider claude
+./bin/bridge --db-path .bridge/session-bridge.sqlite list --project-root . --provider claude
 ```
 
 ## 6) Build resume context
 
 ```bash
-bridge --db-path .bridge/session-bridge.sqlite resume <bridge-session-id> --max-turns 20
+./bin/bridge --db-path .bridge/session-bridge.sqlite resume <bridge-session-id> --max-turns 20
 ```
 
 Resume the latest session directly (no manual session id):
 
 ```bash
-bridge --db-path .bridge/session-bridge.sqlite resume-latest \
+./bin/bridge --db-path .bridge/session-bridge.sqlite resume-latest \
   --project-root . \
   --provider claude \
   --max-turns 20
@@ -110,7 +123,7 @@ bridge --db-path .bridge/session-bridge.sqlite resume-latest \
 Skip repo consistency check section if needed:
 
 ```bash
-bridge --db-path .bridge/session-bridge.sqlite resume <bridge-session-id> --no-consistency-check
+./bin/bridge --db-path .bridge/session-bridge.sqlite resume <bridge-session-id> --no-consistency-check
 ```
 
 ## Notes

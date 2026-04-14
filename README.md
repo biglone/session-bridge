@@ -2,6 +2,8 @@
 
 Cross-provider session bridge for Codex-style workflows.
 
+Run commands with `./bin/bridge` (no global pip requirement).
+
 ## Goal
 
 Provide a local bridge so users can switch between different Codex providers/accounts and still recover:

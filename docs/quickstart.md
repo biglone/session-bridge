@@ -87,6 +87,15 @@ bridge --db-path .bridge/session-bridge.sqlite list --project-root . --provider 
 bridge --db-path .bridge/session-bridge.sqlite resume <bridge-session-id> --max-turns 20
 ```
 
+Resume the latest session directly (no manual session id):
+
+```bash
+bridge --db-path .bridge/session-bridge.sqlite resume-latest \
+  --project-root . \
+  --provider claude \
+  --max-turns 20
+```
+
 Skip repo consistency check section if needed:
 
 ```bash

@@ -26,7 +26,7 @@ MVP ready:
 
 - SQLite bridge store
 - `bridge list` with provider filter (`--provider`)
-- `bridge resume` with repository consistency check
+- `bridge resume` / `bridge resume-latest` with repository consistency check
 - `bridge import-codex` for real local Codex rollout logs
 - `bridge import-claude` for real local Claude project logs
 - `bridge import-all` to ingest both providers in one command

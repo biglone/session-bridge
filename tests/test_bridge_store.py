@@ -84,3 +84,9 @@ def test_list_sessions_provider_filter(tmp_path: Path) -> None:
     assert codex_sessions[0].provider == "codex-openai-a"
     assert len(claude_sessions) == 1
     assert claude_sessions[0].provider == "claude-main"
+
+    latest_any = store.get_latest_session(project_root=project_root)
+    latest_claude = store.get_latest_session(project_root=project_root, provider_filter="claude")
+    assert latest_any is not None
+    assert latest_claude is not None
+    assert latest_claude.provider == "claude-main"

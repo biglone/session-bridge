@@ -71,12 +71,30 @@ def cmd_resume(args: argparse.Namespace) -> int:
     if session is None:
         raise SystemExit(f"Session not found: {args.session_id}")
 
-    turns = store.list_turns(args.session_id, limit=args.max_turns)
+    return _print_resume(store, session.id, args.max_turns, args.no_consistency_check)
+
+
+def _print_resume(store: BridgeStore, session_id: str, max_turns: int, no_consistency_check: bool) -> int:
+    session = store.get_session(session_id)
+    if session is None:
+        raise SystemExit(f"Session not found: {session_id}")
+
+    turns = store.list_turns(session_id, limit=max_turns)
     context = build_resume_context(session, turns)
-    if not args.no_consistency_check:
+    if not no_consistency_check:
         context = f"{context}\n\n{build_git_consistency_section(session)}"
     print(context)
     return 0
+
+
+def cmd_resume_latest(args: argparse.Namespace) -> int:
+    store = _store_from_args(args)
+    project_root = str(Path(args.project_root).resolve())
+    session = store.get_latest_session(project_root=project_root, provider_filter=args.provider)
+    if session is None:
+        hint = f" provider filter={args.provider!r}" if args.provider else ""
+        raise SystemExit(f"No sessions found for project={project_root}{hint}")
+    return _print_resume(store, session.id, args.max_turns, args.no_consistency_check)
 
 
 def cmd_import_codex(args: argparse.Namespace) -> int:
@@ -202,6 +220,24 @@ def build_parser() -> argparse.ArgumentParser:
         help="Skip git branch/commit consistency check section",
     )
     p_resume.set_defaults(func=cmd_resume)
+
+    p_resume_latest = subparsers.add_parser(
+        "resume-latest",
+        help="Resume the latest session for a project (optionally filtered by provider)",
+    )
+    p_resume_latest.add_argument("--project-root", default=".", help="Project root path")
+    p_resume_latest.add_argument(
+        "--provider",
+        default="",
+        help="Optional case-insensitive provider filter (substring match)",
+    )
+    p_resume_latest.add_argument("--max-turns", type=int, default=20, help="Recent turns to include")
+    p_resume_latest.add_argument(
+        "--no-consistency-check",
+        action="store_true",
+        help="Skip git branch/commit consistency check section",
+    )
+    p_resume_latest.set_defaults(func=cmd_resume_latest)
 
     p_import = subparsers.add_parser(
         "import-codex",

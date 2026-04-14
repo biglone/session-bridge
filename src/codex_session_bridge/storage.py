@@ -135,6 +135,12 @@ class BridgeStore:
             return None
         return self._row_to_session(row)
 
+    def get_latest_session(self, project_root: str, provider_filter: str | None = None) -> BridgeSession | None:
+        sessions = self.list_sessions(project_root=project_root, limit=1, provider_filter=provider_filter)
+        if not sessions:
+            return None
+        return sessions[0]
+
     def list_turns(self, session_id: str, limit: int = 30) -> list[BridgeTurn]:
         with self._connect() as conn:
             rows = conn.execute(

@@ -4,6 +4,7 @@ from pathlib import Path
 from .adapters.claude_projects import import_claude_projects
 from .adapters.codex_rollout import import_codex_rollouts
 from .consistency import build_git_consistency_section
+from .installer import install_home_plugin
 from .models import BridgeSession, BridgeTurn
 from .resume import build_resume_context
 from .storage import BridgeStore
@@ -166,6 +167,19 @@ def cmd_import_all(args: argparse.Namespace) -> int:
         "Total imported sessions: "
         f"{codex_stats.imported + claude_stats.imported}"
     )
+    return 0
+
+
+def cmd_install_plugin(args: argparse.Namespace) -> int:
+    result = install_home_plugin(
+        plugin_source=args.plugin_source,
+        plugins_home=args.plugins_home,
+        marketplace_path=args.marketplace_path,
+    )
+    print(f"Plugin installed: {result.plugin_name}")
+    print(f"- source: {result.plugin_source}")
+    print(f"- target: {result.plugin_target} ({result.link_action})")
+    print(f"- marketplace: {result.marketplace_path} ({result.marketplace_action})")
     return 0
 
 
@@ -340,6 +354,27 @@ def build_parser() -> argparse.ArgumentParser:
         help="Maximum Claude JSONL files to scan",
     )
     p_import_all.set_defaults(func=cmd_import_all)
+
+    p_install = subparsers.add_parser(
+        "install-plugin",
+        help="Install this plugin into home marketplace (~/.agents/plugins/marketplace.json)",
+    )
+    p_install.add_argument(
+        "--plugin-source",
+        default=".",
+        help="Path to plugin source directory containing .codex-plugin/plugin.json",
+    )
+    p_install.add_argument(
+        "--plugins-home",
+        default="~/plugins",
+        help="Directory where plugin symlink should be created",
+    )
+    p_install.add_argument(
+        "--marketplace-path",
+        default="~/.agents/plugins/marketplace.json",
+        help="Marketplace file path to create/update",
+    )
+    p_install.set_defaults(func=cmd_install_plugin)
 
     return parser
 

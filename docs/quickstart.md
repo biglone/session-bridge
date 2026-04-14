@@ -7,6 +7,17 @@ cd /home/Biglone/workspace/codex-session-bridge-plugin
 python3 -m pip install -e .
 ```
 
+## 1.5) Register plugin into Codex local marketplace (one-time)
+
+```bash
+bridge install-plugin --plugin-source /home/Biglone/workspace/codex-session-bridge-plugin
+```
+
+This creates:
+
+- plugin symlink: `~/plugins/codex-session-bridge`
+- marketplace entry: `~/.agents/plugins/marketplace.json`
+
 ## 2) Initialize bridge database
 
 ```bash

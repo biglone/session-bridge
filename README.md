@@ -30,6 +30,7 @@ MVP ready:
 - `bridge import-codex` for real local Codex rollout logs
 - `bridge import-claude` for real local Claude project logs
 - `bridge import-all` to ingest both providers in one command
+- `bridge install-plugin` to register into `~/.agents/plugins/marketplace.json`
 - `bridge sync-demo` for synthetic test data
 
 ## Quick Start

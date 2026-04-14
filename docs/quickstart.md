@@ -118,6 +118,8 @@ Or run one command for both sources:
 ./bin/bridge --db-path .bridge/session-bridge.sqlite list --project-root . --limit 10
 ```
 
+By default, `list` auto-imports rollout history found under `./.codex` (including multi-account layouts such as `./.codex/<account>/sessions`).
+
 Filter by provider keyword (case-insensitive):
 
 ```bash
@@ -138,6 +140,8 @@ Resume the latest session directly (no manual session id):
   --provider claude \
   --max-turns 20
 ```
+
+`resume-latest` also auto-imports project-local `./.codex` history before selecting the latest session.
 
 Skip repo consistency check section if needed:
 

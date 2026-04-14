@@ -1,4 +1,5 @@
 import argparse
+import re
 from pathlib import Path
 
 from .adapters.claude_projects import import_claude_projects
@@ -15,6 +16,73 @@ DEFAULT_DB_PATH = Path(".bridge/session-bridge.sqlite")
 
 def _store_from_args(args: argparse.Namespace) -> BridgeStore:
     return BridgeStore(Path(args.db_path))
+
+
+def _resolve_project_codex_root(project_root: Path, codex_dir: str) -> Path:
+    raw = Path(codex_dir).expanduser()
+    if raw.is_absolute():
+        return raw.resolve()
+    return (project_root / raw).resolve()
+
+
+def _discover_codex_session_roots(codex_root: Path) -> list[Path]:
+    if not codex_root.exists():
+        return []
+
+    roots: set[Path] = set()
+    if codex_root.is_dir() and codex_root.name == "sessions":
+        roots.add(codex_root.resolve())
+    roots.update(p.resolve() for p in codex_root.rglob("sessions") if p.is_dir())
+
+    valid_roots: list[Path] = []
+    for candidate in sorted(roots):
+        try:
+            next(candidate.rglob("rollout-*.jsonl"))
+            valid_roots.append(candidate)
+        except StopIteration:
+            continue
+    return valid_roots
+
+
+def _slug(text: str) -> str:
+    out = re.sub(r"[^A-Za-z0-9._-]+", "-", text.strip()).strip("-").lower()
+    return out or "x"
+
+
+def _provider_label_for_project_sessions(codex_root: Path, sessions_root: Path) -> str:
+    base = "codex-project"
+    try:
+        rel = sessions_root.resolve().relative_to(codex_root.resolve())
+    except ValueError:
+        return base
+
+    account_parts = [_slug(part) for part in rel.parts[:-1] if part.strip()]
+    if not account_parts:
+        return base
+    return f"{base}-{'-'.join(account_parts)}"
+
+
+def _auto_import_project_codex(
+    store: BridgeStore,
+    project_root: str,
+    codex_dir: str = ".codex",
+    limit: int = 200,
+) -> None:
+    project_path = Path(project_root).resolve()
+    codex_root = _resolve_project_codex_root(project_path, codex_dir)
+    session_roots = _discover_codex_session_roots(codex_root)
+    if not session_roots:
+        return
+
+    for sessions_root in session_roots:
+        provider_label = _provider_label_for_project_sessions(codex_root, sessions_root)
+        import_codex_rollouts(
+            store=store,
+            sessions_root=sessions_root,
+            provider_label=provider_label,
+            project_root_filter=str(project_path),
+            limit=limit,
+        )
 
 
 def cmd_init(args: argparse.Namespace) -> int:
@@ -49,6 +117,13 @@ def cmd_sync_demo(args: argparse.Namespace) -> int:
 def cmd_list(args: argparse.Namespace) -> int:
     store = _store_from_args(args)
     project_root = str(Path(args.project_root).resolve())
+    if not bool(getattr(args, "no_scan_project_codex", False)):
+        _auto_import_project_codex(
+            store=store,
+            project_root=project_root,
+            codex_dir=str(getattr(args, "project_codex_dir", ".codex")),
+            limit=int(getattr(args, "project_codex_limit", 200)),
+        )
     sessions = store.list_sessions(
         project_root=project_root,
         limit=args.limit,
@@ -91,6 +166,13 @@ def _print_resume(store: BridgeStore, session_id: str, max_turns: int, no_consis
 def cmd_resume_latest(args: argparse.Namespace) -> int:
     store = _store_from_args(args)
     project_root = str(Path(args.project_root).resolve())
+    if not bool(getattr(args, "no_scan_project_codex", False)):
+        _auto_import_project_codex(
+            store=store,
+            project_root=project_root,
+            codex_dir=str(getattr(args, "project_codex_dir", ".codex")),
+            limit=int(getattr(args, "project_codex_limit", 200)),
+        )
     session = store.get_latest_session(project_root=project_root, provider_filter=args.provider)
     if session is None:
         hint = f" provider filter={args.provider!r}" if args.provider else ""
@@ -223,6 +305,22 @@ def build_parser() -> argparse.ArgumentParser:
         default="",
         help="Optional case-insensitive provider filter (substring match)",
     )
+    p_list.add_argument(
+        "--project-codex-dir",
+        default=".codex",
+        help="Project-local Codex history directory to scan before listing (default: .codex)",
+    )
+    p_list.add_argument(
+        "--project-codex-limit",
+        type=int,
+        default=200,
+        help="Maximum rollout files to scan per discovered project Codex sessions root",
+    )
+    p_list.add_argument(
+        "--no-scan-project-codex",
+        action="store_true",
+        help="Disable auto-import from project-local Codex directory before listing",
+    )
     p_list.set_defaults(func=cmd_list)
 
     p_resume = subparsers.add_parser("resume", help="Build resume context from bridge session")
@@ -244,6 +342,22 @@ def build_parser() -> argparse.ArgumentParser:
         "--provider",
         default="",
         help="Optional case-insensitive provider filter (substring match)",
+    )
+    p_resume_latest.add_argument(
+        "--project-codex-dir",
+        default=".codex",
+        help="Project-local Codex history directory to scan before resolving latest session (default: .codex)",
+    )
+    p_resume_latest.add_argument(
+        "--project-codex-limit",
+        type=int,
+        default=200,
+        help="Maximum rollout files to scan per discovered project Codex sessions root",
+    )
+    p_resume_latest.add_argument(
+        "--no-scan-project-codex",
+        action="store_true",
+        help="Disable auto-import from project-local Codex directory before resolving latest session",
     )
     p_resume_latest.add_argument("--max-turns", type=int, default=20, help="Recent turns to include")
     p_resume_latest.add_argument(

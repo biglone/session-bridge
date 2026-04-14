@@ -1,6 +1,6 @@
 {
   "name": "session-bridge",
-  "version": "0.1.1",
+  "version": "0.1.2",
   "description": "Cross-provider session bridge for Codex workflows",
   "author": {
     "name": "Biglone",

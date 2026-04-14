@@ -1,5 +1,5 @@
 {
-  "name": "codex-session-bridge",
+  "name": "session-bridge-plugin",
   "version": "0.1.0",
   "description": "Cross-provider session bridge for Codex workflows",
   "author": {
@@ -7,8 +7,8 @@
     "email": "todo@example.com",
     "url": "https://github.com/Biglone"
   },
-  "homepage": "https://github.com/Biglone/codex-session-bridge-plugin",
-  "repository": "https://github.com/Biglone/codex-session-bridge-plugin",
+  "homepage": "https://github.com/Biglone/session-bridge-plugin",
+  "repository": "https://github.com/Biglone/session-bridge-plugin",
   "license": "MIT",
   "keywords": [
     "codex",
@@ -28,7 +28,7 @@
       "Write",
       "Interactive"
     ],
-    "websiteURL": "https://github.com/Biglone/codex-session-bridge-plugin",
+    "websiteURL": "https://github.com/Biglone/session-bridge-plugin",
     "privacyPolicyURL": "https://example.com/privacy",
     "termsOfServiceURL": "https://example.com/terms",
     "defaultPrompt": [

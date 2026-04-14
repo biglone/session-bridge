@@ -3,20 +3,20 @@
 ## 1) Install editable package
 
 ```bash
-cd /home/Biglone/workspace/codex-session-bridge-plugin
+cd /home/Biglone/workspace/session-bridge-plugin
 python3 -m pip install -e .
 ```
 
 Alternative (NPM package):
 
 ```bash
-npx @biglone/codex-session-bridge --help
+npx @biglone/session-bridge-plugin --help
 ```
 
 If your system blocks global pip install (PEP 668), use local venv setup:
 
 ```bash
-cd /home/Biglone/workspace/codex-session-bridge-plugin
+cd /home/Biglone/workspace/session-bridge-plugin
 ./scripts/setup_venv.sh
 ```
 
@@ -29,12 +29,12 @@ Then run via local launcher (works with or without editable install):
 ## 1.5) Register plugin into Codex local marketplace (one-time)
 
 ```bash
-./bin/bridge install-plugin --plugin-source /home/Biglone/workspace/codex-session-bridge-plugin
+./bin/bridge install-plugin --plugin-source /home/Biglone/workspace/session-bridge-plugin
 ```
 
 This creates:
 
-- plugin symlink: `~/plugins/codex-session-bridge`
+- plugin symlink: `~/plugins/session-bridge-plugin`
 - marketplace entry: `~/.agents/plugins/marketplace.json`
 
 ## 2) Initialize bridge database

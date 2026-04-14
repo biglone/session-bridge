@@ -1,4 +1,4 @@
-# codex-session-bridge-plugin
+# session-bridge-plugin
 
 Cross-provider session bridge for Codex-style workflows.
 

@@ -1,17 +1,17 @@
 {
-  "name": "@biglone/codex-session-bridge",
+  "name": "@biglone/session-bridge-plugin",
   "version": "0.1.0",
   "description": "Cross-provider session bridge plugin/CLI for Codex workflows",
   "type": "commonjs",
   "license": "MIT",
   "author": "Biglone",
-  "homepage": "https://github.com/Biglone/codex-session-bridge-plugin",
+  "homepage": "https://github.com/Biglone/session-bridge-plugin",
   "repository": {
     "type": "git",
-    "url": "https://github.com/Biglone/codex-session-bridge-plugin.git"
+    "url": "https://github.com/Biglone/session-bridge-plugin.git"
   },
   "bugs": {
-    "url": "https://github.com/Biglone/codex-session-bridge-plugin/issues"
+    "url": "https://github.com/Biglone/session-bridge-plugin/issues"
   },
   "keywords": [
     "codex",
@@ -21,6 +21,7 @@
     "bridge"
   ],
   "bin": {
+    "session-bridge-plugin": "npm/bin.cjs",
     "codex-session-bridge": "npm/bin.cjs",
     "csbridge": "npm/bin.cjs"
   },

@@ -9,7 +9,7 @@
 ## Local validation
 
 ```bash
-cd /home/Biglone/workspace/codex-session-bridge-plugin
+cd /home/Biglone/workspace/session-bridge-plugin
 npm run test:python
 npm run pack:check
 ```
@@ -26,12 +26,12 @@ If package name already exists, change `name` in `package.json` first (recommend
 ## User install / run
 
 ```bash
-npx @biglone/codex-session-bridge --help
-npx @biglone/codex-session-bridge install-plugin
+npx @biglone/session-bridge-plugin --help
+npx @biglone/session-bridge-plugin install-plugin
 ```
 
 The NPM launcher will:
 
-1. create/update runtime venv at `~/.codex-session-bridge/runtime`
+1. create/update runtime venv at `~/.session-bridge-plugin/runtime`
 2. install Python package into that venv
 3. run the bridge CLI

@@ -93,18 +93,30 @@ class BridgeStore:
                 (turn.session_id, turn.role, turn.content, turn.created_at),
             )
 
-    def list_sessions(self, project_root: str, limit: int = 10) -> list[BridgeSession]:
+    def list_sessions(
+        self,
+        project_root: str,
+        limit: int = 10,
+        provider_filter: str | None = None,
+    ) -> list[BridgeSession]:
+        where_parts = ["project_root = ?"]
+        params: list[object] = [project_root]
+        if provider_filter:
+            where_parts.append("LOWER(provider) LIKE LOWER(?)")
+            params.append(f"%{provider_filter}%")
+        params.append(limit)
+
         with self._connect() as conn:
             rows = conn.execute(
-                """
+                f"""
                 SELECT id, provider, provider_session_id, project_root, title, summary,
                        created_at, updated_at, git_branch, git_commit
                 FROM sessions
-                WHERE project_root = ?
+                WHERE {" AND ".join(where_parts)}
                 ORDER BY updated_at DESC
                 LIMIT ?
                 """,
-                (project_root, limit),
+                params,
             ).fetchall()
         return [self._row_to_session(r) for r in rows]
 

@@ -43,6 +43,17 @@ bridge --db-path .bridge/session-bridge.sqlite import-claude \
   --limit 200
 ```
 
+Or run one command for both sources:
+
+```bash
+bridge --db-path .bridge/session-bridge.sqlite import-all \
+  --project-root . \
+  --codex-provider-label codex-openai-a \
+  --claude-provider-label claude-main \
+  --codex-limit 200 \
+  --claude-limit 200
+```
+
 ## 4) (Optional) Add a demo session
 
 ```bash
@@ -64,14 +75,27 @@ bridge --db-path .bridge/session-bridge.sqlite sync-demo \
 bridge --db-path .bridge/session-bridge.sqlite list --project-root . --limit 10
 ```
 
+Filter by provider keyword (case-insensitive):
+
+```bash
+bridge --db-path .bridge/session-bridge.sqlite list --project-root . --provider claude
+```
+
 ## 6) Build resume context
 
 ```bash
 bridge --db-path .bridge/session-bridge.sqlite resume <bridge-session-id> --max-turns 20
 ```
 
+Skip repo consistency check section if needed:
+
+```bash
+bridge --db-path .bridge/session-bridge.sqlite resume <bridge-session-id> --no-consistency-check
+```
+
 ## Notes
 
 - `import-codex` parses local rollout logs and imports user/assistant turns.
 - `import-claude` parses local Claude project logs and imports user/assistant turns.
+- `import-all` runs both import pipelines in one command.
 - `sync-demo` remains available for synthetic testing.

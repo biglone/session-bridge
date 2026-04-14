@@ -54,3 +54,33 @@ def test_resume_context_contains_recent_turns(tmp_path: Path) -> None:
     assert "vendor-b" in context
     assert "please continue" in context
     assert "continuing now" in context
+
+
+def test_list_sessions_provider_filter(tmp_path: Path) -> None:
+    store = BridgeStore(tmp_path / "bridge.sqlite")
+    project_root = str(tmp_path.resolve())
+
+    s1 = BridgeSession.new(
+        provider="codex-openai-a",
+        provider_session_id="sess-a",
+        project_root=project_root,
+        title="task a",
+        summary="a",
+    )
+    s2 = BridgeSession.new(
+        provider="claude-main",
+        provider_session_id="sess-b",
+        project_root=project_root,
+        title="task b",
+        summary="b",
+    )
+    store.upsert_session(s1)
+    store.upsert_session(s2)
+
+    codex_sessions = store.list_sessions(project_root=project_root, provider_filter="CoDeX", limit=10)
+    claude_sessions = store.list_sessions(project_root=project_root, provider_filter="claude", limit=10)
+
+    assert len(codex_sessions) == 1
+    assert codex_sessions[0].provider == "codex-openai-a"
+    assert len(claude_sessions) == 1
+    assert claude_sessions[0].provider == "claude-main"

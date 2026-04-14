@@ -25,9 +25,11 @@ This project does not try to reuse vendor-native server session IDs. It rebuilds
 MVP ready:
 
 - SQLite bridge store
-- `bridge list` and `bridge resume`
+- `bridge list` with provider filter (`--provider`)
+- `bridge resume` with repository consistency check
 - `bridge import-codex` for real local Codex rollout logs
 - `bridge import-claude` for real local Claude project logs
+- `bridge import-all` to ingest both providers in one command
 - `bridge sync-demo` for synthetic test data
 
 ## Quick Start

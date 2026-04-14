@@ -3,6 +3,7 @@ from pathlib import Path
 
 from .adapters.claude_projects import import_claude_projects
 from .adapters.codex_rollout import import_codex_rollouts
+from .consistency import build_git_consistency_section
 from .models import BridgeSession, BridgeTurn
 from .resume import build_resume_context
 from .storage import BridgeStore
@@ -47,7 +48,11 @@ def cmd_sync_demo(args: argparse.Namespace) -> int:
 def cmd_list(args: argparse.Namespace) -> int:
     store = _store_from_args(args)
     project_root = str(Path(args.project_root).resolve())
-    sessions = store.list_sessions(project_root=project_root, limit=args.limit)
+    sessions = store.list_sessions(
+        project_root=project_root,
+        limit=args.limit,
+        provider_filter=args.provider,
+    )
     if not sessions:
         print(f"No bridge sessions for {project_root}")
         return 0
@@ -68,6 +73,8 @@ def cmd_resume(args: argparse.Namespace) -> int:
 
     turns = store.list_turns(args.session_id, limit=args.max_turns)
     context = build_resume_context(session, turns)
+    if not args.no_consistency_check:
+        context = f"{context}\n\n{build_git_consistency_section(session)}"
     print(context)
     return 0
 
@@ -108,6 +115,42 @@ def cmd_import_claude(args: argparse.Namespace) -> int:
     return 0
 
 
+def cmd_import_all(args: argparse.Namespace) -> int:
+    store = _store_from_args(args)
+    project_root_filter = None if args.all_projects else str(Path(args.project_root).resolve())
+
+    codex_stats = import_codex_rollouts(
+        store=store,
+        sessions_root=Path(args.codex_sessions_root),
+        provider_label=args.codex_provider_label,
+        project_root_filter=project_root_filter,
+        limit=args.codex_limit,
+    )
+    claude_stats = import_claude_projects(
+        store=store,
+        projects_root=Path(args.claude_projects_root),
+        provider_label=args.claude_provider_label,
+        project_root_filter=project_root_filter,
+        limit=args.claude_limit,
+    )
+
+    print(
+        "Codex import: "
+        f"scanned={codex_stats.scanned} imported={codex_stats.imported} "
+        f"skipped_project={codex_stats.skipped_project} skipped_invalid={codex_stats.skipped_invalid}"
+    )
+    print(
+        "Claude import: "
+        f"scanned={claude_stats.scanned} imported={claude_stats.imported} "
+        f"skipped_project={claude_stats.skipped_project} skipped_invalid={claude_stats.skipped_invalid}"
+    )
+    print(
+        "Total imported sessions: "
+        f"{codex_stats.imported + claude_stats.imported}"
+    )
+    return 0
+
+
 def build_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(prog="bridge", description="Codex session bridge CLI")
     parser.add_argument(
@@ -143,11 +186,21 @@ def build_parser() -> argparse.ArgumentParser:
     p_list = subparsers.add_parser("list", help="List latest bridge sessions for project root")
     p_list.add_argument("--project-root", default=".", help="Project root path")
     p_list.add_argument("--limit", type=int, default=10, help="Maximum sessions to display")
+    p_list.add_argument(
+        "--provider",
+        default="",
+        help="Optional case-insensitive provider filter (substring match)",
+    )
     p_list.set_defaults(func=cmd_list)
 
     p_resume = subparsers.add_parser("resume", help="Build resume context from bridge session")
     p_resume.add_argument("session_id", help="Bridge session id")
     p_resume.add_argument("--max-turns", type=int, default=20, help="Recent turns to include")
+    p_resume.add_argument(
+        "--no-consistency-check",
+        action="store_true",
+        help="Skip git branch/commit consistency check section",
+    )
     p_resume.set_defaults(func=cmd_resume)
 
     p_import = subparsers.add_parser(
@@ -203,6 +256,54 @@ def build_parser() -> argparse.ArgumentParser:
     )
     p_import_claude.add_argument("--limit", type=int, default=200, help="Maximum JSONL files to scan")
     p_import_claude.set_defaults(func=cmd_import_claude)
+
+    p_import_all = subparsers.add_parser(
+        "import-all",
+        help="Import both Codex rollout logs and Claude project logs into bridge store",
+    )
+    p_import_all.add_argument(
+        "--project-root",
+        default=".",
+        help="Only import sessions where logged cwd matches this project path",
+    )
+    p_import_all.add_argument(
+        "--all-projects",
+        action="store_true",
+        help="Import sessions from all project roots instead of filtering",
+    )
+    p_import_all.add_argument(
+        "--codex-sessions-root",
+        default="~/.codex/sessions",
+        help="Path to Codex sessions root directory",
+    )
+    p_import_all.add_argument(
+        "--claude-projects-root",
+        default="~/.claude/projects",
+        help="Path to Claude projects root directory",
+    )
+    p_import_all.add_argument(
+        "--codex-provider-label",
+        default="codex",
+        help="Provider label namespace for Codex data",
+    )
+    p_import_all.add_argument(
+        "--claude-provider-label",
+        default="claude-code",
+        help="Provider label namespace for Claude data",
+    )
+    p_import_all.add_argument(
+        "--codex-limit",
+        type=int,
+        default=200,
+        help="Maximum Codex rollout files to scan",
+    )
+    p_import_all.add_argument(
+        "--claude-limit",
+        type=int,
+        default=200,
+        help="Maximum Claude JSONL files to scan",
+    )
+    p_import_all.set_defaults(func=cmd_import_all)
 
     return parser
 

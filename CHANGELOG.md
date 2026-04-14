@@ -6,6 +6,8 @@ The format is based on Keep a Changelog and this project follows Semantic Versio
 
 ## [Unreleased]
 
+## [0.1.10] - 2026-04-15
+
 ### Changed
 - hardened GitHub Actions release flow to check whether the npm version is already published before `npm publish`, preventing duplicate-version failures when a manual publish happens first.
 
@@ -98,7 +100,8 @@ The format is based on Keep a Changelog and this project follows Semantic Versio
 - Repository consistency section in resume output.
 - NPM launcher with Python runtime bootstrap support.
 
-[Unreleased]: https://github.com/Biglone/session-bridge/compare/v0.1.9...HEAD
+[Unreleased]: https://github.com/Biglone/session-bridge/compare/v0.1.10...HEAD
+[0.1.10]: https://github.com/Biglone/session-bridge/releases/tag/v0.1.10
 [0.1.9]: https://github.com/Biglone/session-bridge/releases/tag/v0.1.9
 [0.1.8]: https://github.com/Biglone/session-bridge/releases/tag/v0.1.8
 [0.1.7]: https://github.com/Biglone/session-bridge/releases/tag/v0.1.7

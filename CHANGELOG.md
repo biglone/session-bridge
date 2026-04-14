@@ -6,6 +6,9 @@ The format is based on Keep a Changelog and this project follows Semantic Versio
 
 ## [Unreleased]
 
+### Changed
+- hardened GitHub Actions release flow to check whether the npm version is already published before `npm publish`, preventing duplicate-version failures when a manual publish happens first.
+
 ## [0.1.9] - 2026-04-15
 
 ### Changed

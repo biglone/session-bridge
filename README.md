@@ -35,7 +35,8 @@ Release-candidate baseline:
 - `bridge import-claude` for real local Claude project logs
 - `bridge import-all` to ingest both providers in one command
 - `bridge list` / `bridge resume-latest` auto-scan project-local `.codex` histories, then fallback to home `~/.codex` histories (including multi-account subpaths) before reading store
-- `bridge resume` / `bridge resume-latest` support `--copy` to copy resume context to clipboard for quick paste into a new Codex session
+- `bridge resume` supports optional `--copy`; `bridge resume-latest` defaults to clipboard copy and supports `--no-copy`
+- `bridge version` prints the current CLI/package version
 - `bridge install-plugin` to register into `~/.agents/plugins/marketplace.json`
 - `bridge sync-demo` for synthetic test data
 - imported text is sanitized for common `token/key/bearer` secret patterns

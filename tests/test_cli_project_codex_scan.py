@@ -160,6 +160,7 @@ def test_resume_latest_auto_scans_project_codex_directory(tmp_path: Path, capsys
         home_codex_limit=50,
         no_scan_home_codex=True,
         max_turns=10,
+        copy=False,
         no_consistency_check=True,
     )
     code = cmd_resume_latest(args)

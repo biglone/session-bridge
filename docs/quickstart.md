@@ -136,6 +136,7 @@ Filter by provider keyword (case-insensitive):
 ```
 
 `resume` / `resume-latest` default to `--max-turns 20` if you do not specify it.
+`resume-latest` now defaults to clipboard mode (`--copy` behavior).
 
 Resume the latest session directly (no manual session id):
 
@@ -148,21 +149,35 @@ Resume the latest session directly (no manual session id):
 
 `resume-latest` also auto-imports project-local `./.codex` and home-level `~/.codex` history before selecting the latest session.
 
-When the generated context is too long for terminal output, copy directly to clipboard:
+`resume-latest` default behavior (copy to clipboard):
+
+```bash
+./bin/bridge --db-path .bridge/session-bridge.sqlite resume-latest \
+  --project-root . \
+  --max-turns 100
+```
+
+On successful copy, CLI prints a short hint so you can open a new Codex session and paste.
+
+If you want full text in terminal instead, disable copy mode:
 
 ```bash
 ./bin/bridge --db-path .bridge/session-bridge.sqlite resume-latest \
   --project-root . \
   --max-turns 100 \
-  --copy
+  --no-copy
 ```
-
-On successful copy, CLI prints a short hint so you can open a new Codex session and paste.
 
 Skip repo consistency check section if needed:
 
 ```bash
 ./bin/bridge --db-path .bridge/session-bridge.sqlite resume <bridge-session-id> --no-consistency-check
+```
+
+Show current installed version:
+
+```bash
+./bin/bridge version
 ```
 
 ## Notes

@@ -1,4 +1,5 @@
 import argparse
+import importlib.metadata
 import re
 import shutil
 import subprocess
@@ -19,6 +20,20 @@ DEFAULT_DB_PATH = Path(".bridge/session-bridge.sqlite")
 
 def _store_from_args(args: argparse.Namespace) -> BridgeStore:
     return BridgeStore(Path(args.db_path))
+
+
+def _resolve_cli_version() -> str:
+    try:
+        return importlib.metadata.version("session-bridge")
+    except importlib.metadata.PackageNotFoundError:
+        pyproject = Path(__file__).resolve().parents[2] / "pyproject.toml"
+        if pyproject.exists():
+            pattern = re.compile(r'^version\s*=\s*"([^"]+)"\s*$')
+            for line in pyproject.read_text(encoding="utf-8").splitlines():
+                match = pattern.match(line.strip())
+                if match:
+                    return match.group(1)
+        return "0.0.0+dev"
 
 
 def _resolve_project_codex_root(project_root: Path, codex_dir: str) -> Path:
@@ -123,6 +138,11 @@ def _auto_import_codex_sources(
 def cmd_init(args: argparse.Namespace) -> int:
     store = _store_from_args(args)
     print(f"Bridge store ready: {store.db_path}")
+    return 0
+
+
+def cmd_version(_: argparse.Namespace) -> int:
+    print(_resolve_cli_version())
     return 0
 
 
@@ -282,7 +302,7 @@ def cmd_resume_latest(args: argparse.Namespace) -> int:
         session.id,
         args.max_turns,
         args.no_consistency_check,
-        copy_output=bool(getattr(args, "copy", False)),
+        copy_output=bool(getattr(args, "copy", True)),
     )
 
 
@@ -383,6 +403,9 @@ def build_parser() -> argparse.ArgumentParser:
 
     p_init = subparsers.add_parser("init", help="Initialize local bridge database")
     p_init.set_defaults(func=cmd_init)
+
+    p_version = subparsers.add_parser("version", help="Print current session-bridge version")
+    p_version.set_defaults(func=cmd_version)
 
     p_sync = subparsers.add_parser(
         "sync-demo",
@@ -503,11 +526,20 @@ def build_parser() -> argparse.ArgumentParser:
         help="Disable auto-import from home Codex directory before resolving latest session",
     )
     p_resume_latest.add_argument("--max-turns", type=int, default=20, help="Recent turns to include")
-    p_resume_latest.add_argument(
+    copy_group = p_resume_latest.add_mutually_exclusive_group()
+    copy_group.add_argument(
         "--copy",
+        dest="copy",
         action="store_true",
-        help="Copy generated resume context to system clipboard and print a short continuation hint",
+        help="Copy generated resume context to system clipboard (default behavior)",
     )
+    copy_group.add_argument(
+        "--no-copy",
+        dest="copy",
+        action="store_false",
+        help="Print full resume context to terminal instead of copying to clipboard",
+    )
+    p_resume_latest.set_defaults(copy=True)
     p_resume_latest.add_argument(
         "--no-consistency-check",
         action="store_true",

@@ -119,3 +119,10 @@ def test_resume_latest_default_max_turns_is_20() -> None:
     parser = build_parser()
     args = parser.parse_args(["resume-latest"])
     assert args.max_turns == 20
+    assert args.copy is True
+
+
+def test_resume_latest_no_copy_flag_disables_clipboard_mode() -> None:
+    parser = build_parser()
+    args = parser.parse_args(["resume-latest", "--no-copy"])
+    assert args.copy is False

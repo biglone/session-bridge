@@ -6,6 +6,12 @@ The format is based on Keep a Changelog and this project follows Semantic Versio
 
 ## [Unreleased]
 
+### Added
+- new `bridge version` command to print the current installed CLI/package version.
+
+### Changed
+- `bridge resume-latest` now defaults to clipboard mode and supports `--no-copy` to force terminal output.
+
 ## [0.1.4] - 2026-04-14
 
 ### Added

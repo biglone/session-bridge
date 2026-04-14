@@ -3,6 +3,7 @@ from dataclasses import dataclass
 from pathlib import Path
 
 from ..models import BridgeSession, BridgeTurn
+from ..redaction import sanitize_text
 from ..storage import BridgeStore
 
 
@@ -140,6 +141,7 @@ def parse_claude_project_file(file_path: Path) -> ParsedSession | None:
                         continue
                     text = _cleanup_user_text(_extract_user_text(message))
                     if text:
+                        text = sanitize_text(text)
                         turns.append(ParsedTurn(role="user", content=text, created_at=ts))
                 elif rec_type == "assistant":
                     message = obj.get("message")
@@ -149,6 +151,7 @@ def parse_claude_project_file(file_path: Path) -> ParsedSession | None:
                     if found_model and not model:
                         model = found_model
                     if text:
+                        text = sanitize_text(text)
                         turns.append(ParsedTurn(role="assistant", content=text, created_at=ts))
     except (OSError, json.JSONDecodeError):
         return None

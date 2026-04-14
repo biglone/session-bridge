@@ -119,3 +119,4 @@ bridge --db-path .bridge/session-bridge.sqlite resume <bridge-session-id> --no-c
 - `import-claude` parses local Claude project logs and imports user/assistant turns.
 - `import-all` runs both import pipelines in one command.
 - `sync-demo` remains available for synthetic testing.
+- imports sanitize common secret patterns (`api_key`, `access_token`, bearer headers, `sk-...`) before writing to SQLite.

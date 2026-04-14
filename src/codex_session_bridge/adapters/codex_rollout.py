@@ -3,6 +3,7 @@ from dataclasses import dataclass
 from pathlib import Path
 
 from ..models import BridgeSession, BridgeTurn
+from ..redaction import sanitize_text
 from ..storage import BridgeStore
 
 
@@ -102,10 +103,12 @@ def parse_rollout_file(file_path: Path) -> ParsedSession | None:
                     if kind == "user_message":
                         text = _cleanup_user_text(str(payload.get("message") or ""))
                         if text:
+                            text = sanitize_text(text)
                             turns.append(ParsedTurn(role="user", content=text, created_at=ts))
                     elif kind == "agent_message":
                         text = str(payload.get("message") or "").strip()
                         if text:
+                            text = sanitize_text(text)
                             turns.append(ParsedTurn(role="assistant", content=text, created_at=ts))
                     continue
 
@@ -119,6 +122,7 @@ def parse_rollout_file(file_path: Path) -> ParsedSession | None:
                     if role == "user":
                         text = _cleanup_user_text(text)
                     if text:
+                        text = sanitize_text(text)
                         fallback_turns.append(ParsedTurn(role=role, content=text, created_at=ts))
     except (OSError, json.JSONDecodeError):
         return None

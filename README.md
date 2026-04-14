@@ -32,6 +32,7 @@ MVP ready:
 - `bridge import-all` to ingest both providers in one command
 - `bridge install-plugin` to register into `~/.agents/plugins/marketplace.json`
 - `bridge sync-demo` for synthetic test data
+- imported text is sanitized for common `token/key/bearer` secret patterns
 
 ## Quick Start
 

@@ -400,3 +400,36 @@ def test_shim_cli_subcommands_wired(tmp_path: Path) -> None:
 
     run_args = parser.parse_args(["shim", "run"])
     assert run_args.func == cmd_shim_run
+
+
+def test_cmd_shim_run_handles_restore_keyboard_interrupt(monkeypatch, tmp_path: Path, capsys) -> None:
+    monkeypatch.setattr(
+        cli,
+        "apply_provider_shim",
+        lambda **_: SimpleNamespace(run_id="shim-run-x", candidate_threads=1, changed_files=1, changed_rows=1),
+    )
+    monkeypatch.setattr(
+        cli.subprocess,
+        "run",
+        lambda *_args, **_kwargs: subprocess.CompletedProcess(["codex"], 130),
+    )
+
+    def _raise_interrupt(*_args, **_kwargs):  # type: ignore[no-untyped-def]
+        raise KeyboardInterrupt()
+
+    monkeypatch.setattr(cli, "_restore_with_signal_guard", _raise_interrupt)
+
+    args = argparse.Namespace(
+        cwd=str(tmp_path),
+        target_provider="provider-target",
+        codex_home=str(tmp_path / "codex-home"),
+        run_id="",
+        template_align=False,
+        force_restore=False,
+        command=["--", "codex"],
+    )
+
+    code = cmd_shim_run(args)
+    captured = capsys.readouterr()
+    assert code == 130
+    assert "Manual restore may be required" in captured.err

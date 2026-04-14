@@ -5,6 +5,7 @@ import os
 import re
 import shlex
 import shutil
+import signal
 import subprocess
 import sys
 from pathlib import Path
@@ -602,6 +603,35 @@ def _normalize_shim_run_command(command: list[str]) -> list[str]:
     return cmd
 
 
+def _restore_with_signal_guard(cwd: Path, run_id: str, force: bool) -> tuple[object, bool]:
+    interrupted = False
+    old_sigint = signal.getsignal(signal.SIGINT)
+    old_sigterm = signal.getsignal(signal.SIGTERM)
+
+    def _defer_interrupt(signum, _frame):  # type: ignore[no-untyped-def]
+        nonlocal interrupted
+        interrupted = True
+        name = "SIGINT" if signum == signal.SIGINT else "SIGTERM"
+        print(
+            f"{name} received; deferring interruption until shim restore finishes.",
+            file=sys.stderr,
+        )
+
+    signal.signal(signal.SIGINT, _defer_interrupt)
+    signal.signal(signal.SIGTERM, _defer_interrupt)
+    try:
+        result = restore_provider_shim(
+            cwd=cwd,
+            run_id=run_id,
+            force=force,
+        )
+    finally:
+        signal.signal(signal.SIGINT, old_sigint)
+        signal.signal(signal.SIGTERM, old_sigterm)
+
+    return result, interrupted
+
+
 def cmd_shim_run(args: argparse.Namespace) -> int:
     cwd = Path(args.cwd).expanduser().resolve()
     codex_home = Path(args.codex_home)
@@ -637,7 +667,7 @@ def cmd_shim_run(args: argparse.Namespace) -> int:
             command_exit_code = 127
     finally:
         try:
-            restored = restore_provider_shim(
+            restored, interrupted = _restore_with_signal_guard(
                 cwd=cwd,
                 run_id=result.run_id,
                 force=bool(args.force_restore),
@@ -649,7 +679,12 @@ def cmd_shim_run(args: argparse.Namespace) -> int:
                 f"skipped_file_conflicts={restored.skipped_file_conflicts} "
                 f"skipped_row_conflicts={restored.skipped_row_conflicts}"
             )
-        except Exception as exc:
+            if interrupted:
+                print(
+                    "Restore completed after deferred interrupt.",
+                    file=sys.stderr,
+                )
+        except BaseException as exc:
             print(
                 "Shim restore failed. Manual restore may be required: "
                 f"run_id={result.run_id} error={exc}",

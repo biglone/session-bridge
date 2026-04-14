@@ -1,6 +1,6 @@
 {
   "name": "@biglone/session-bridge",
-  "version": "0.1.8",
+  "version": "0.1.9",
   "description": "Cross-provider Codex session continuity CLI with resume context bridging, .codex history import, SSH clipboard support, and safe provider shim restore",
   "type": "commonjs",
   "license": "MIT",

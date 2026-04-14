@@ -6,6 +6,8 @@ The format is based on Keep a Changelog and this project follows Semantic Versio
 
 ## [Unreleased]
 
+## [0.1.9] - 2026-04-15
+
 ### Changed
 - refreshed NPM package metadata (`description`, discoverability `keywords`) to better reflect current features (`shim`, `resume-latest`, SSH clipboard/OSC52, cross-provider continuity).
 - improved README and publish guide messaging to align package listing copy with actual CLI capabilities.
@@ -93,7 +95,8 @@ The format is based on Keep a Changelog and this project follows Semantic Versio
 - Repository consistency section in resume output.
 - NPM launcher with Python runtime bootstrap support.
 
-[Unreleased]: https://github.com/Biglone/session-bridge/compare/v0.1.8...HEAD
+[Unreleased]: https://github.com/Biglone/session-bridge/compare/v0.1.9...HEAD
+[0.1.9]: https://github.com/Biglone/session-bridge/releases/tag/v0.1.9
 [0.1.8]: https://github.com/Biglone/session-bridge/releases/tag/v0.1.8
 [0.1.7]: https://github.com/Biglone/session-bridge/releases/tag/v0.1.7
 [0.1.6]: https://github.com/Biglone/session-bridge/releases/tag/v0.1.6

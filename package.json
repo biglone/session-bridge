@@ -1,6 +1,6 @@
 {
   "name": "@biglone/session-bridge",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "Cross-provider session bridge plugin/CLI for Codex workflows",
   "type": "commonjs",
   "license": "MIT",
@@ -28,6 +28,7 @@
   },
   "files": [
     "npm/bin.cjs",
+    "npm/postinstall.cjs",
     "bin/bridge",
     "scripts/setup_venv.sh",
     "scripts/release_check.sh",
@@ -52,7 +53,8 @@
     "pack:check": "npm pack --dry-run",
     "release:check": "bash scripts/release_check.sh",
     "build:python": ".venv/bin/python -m build --sdist --wheel",
-    "twine:check": ".venv/bin/python -m twine check dist/*"
+    "twine:check": ".venv/bin/python -m twine check dist/*",
+    "postinstall": "node npm/postinstall.cjs"
   },
   "engines": {
     "node": ">=18"

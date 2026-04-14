@@ -53,3 +53,16 @@ Local release preflight command:
 ```bash
 npm run release:check
 ```
+
+## Global Install Behavior
+
+When installed globally via npm, plugin registration now runs automatically:
+
+```bash
+npm install -g @biglone/session-bridge
+```
+
+Auto-registration can be controlled with environment variables:
+
+- `SESSION_BRIDGE_SKIP_AUTO_INSTALL=1`: skip plugin registration
+- `SESSION_BRIDGE_AUTO_INSTALL=1`: force plugin registration even for local installs

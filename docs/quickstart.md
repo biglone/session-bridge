@@ -13,6 +13,19 @@ Alternative (NPM package):
 npx @biglone/session-bridge --help
 ```
 
+Global install (plugin auto-registration runs by default):
+
+```bash
+npm install -g @biglone/session-bridge
+session-bridge --help
+```
+
+Skip auto-registration on global install:
+
+```bash
+SESSION_BRIDGE_SKIP_AUTO_INSTALL=1 npm install -g @biglone/session-bridge
+```
+
 If your system blocks global pip install (PEP 668), use local venv setup:
 
 ```bash
@@ -139,3 +152,18 @@ Skip repo consistency check section if needed:
 - `import-all` runs both import pipelines in one command.
 - `sync-demo` remains available for synthetic testing.
 - imports sanitize common secret patterns (`api_key`, `access_token`, bearer headers, `sk-...`) before writing to SQLite.
+
+## Upgrade / Reinstall (macOS)
+
+```bash
+npm uninstall -g @biglone/session-bridge
+npm install -g @biglone/session-bridge@latest
+session-bridge --help
+```
+
+Verify plugin registration:
+
+```bash
+ls -la ~/plugins/session-bridge
+rg -n "session-bridge" ~/.agents/plugins/marketplace.json
+```

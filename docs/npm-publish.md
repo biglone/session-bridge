@@ -27,6 +27,7 @@ If package name already exists, change `name` in `package.json` first (recommend
 ```bash
 npx @biglone/session-bridge --help
 npx @biglone/session-bridge install-plugin
+npm install -g @biglone/session-bridge
 ```
 
 The NPM launcher will:
@@ -34,3 +35,5 @@ The NPM launcher will:
 1. create/update runtime venv at `~/.session-bridge/runtime`
 2. install Python package into that venv
 3. run the bridge CLI
+
+On global install, package `postinstall` now triggers `install-plugin` automatically.

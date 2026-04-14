@@ -6,6 +6,12 @@ The format is based on Keep a Changelog and this project follows Semantic Versio
 
 ## [Unreleased]
 
+## [0.1.8] - 2026-04-15
+
+### Fixed
+- `bridge shim run` now shields restore from `SIGINT/SIGTERM` interruptions so pressing `Ctrl+C` in the wrapped `codex` process no longer leaves partially-restored provider metadata.
+- `bridge shim run` restore error handling now catches `KeyboardInterrupt` and other `BaseException` cases, returning a controlled error with manual-restore hint instead of traceback abort.
+
 ## [0.1.7] - 2026-04-15
 
 ### Added
@@ -83,7 +89,8 @@ The format is based on Keep a Changelog and this project follows Semantic Versio
 - Repository consistency section in resume output.
 - NPM launcher with Python runtime bootstrap support.
 
-[Unreleased]: https://github.com/Biglone/session-bridge/compare/v0.1.7...HEAD
+[Unreleased]: https://github.com/Biglone/session-bridge/compare/v0.1.8...HEAD
+[0.1.8]: https://github.com/Biglone/session-bridge/releases/tag/v0.1.8
 [0.1.7]: https://github.com/Biglone/session-bridge/releases/tag/v0.1.7
 [0.1.6]: https://github.com/Biglone/session-bridge/releases/tag/v0.1.6
 [0.1.5]: https://github.com/Biglone/session-bridge/releases/tag/v0.1.5

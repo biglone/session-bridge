@@ -18,6 +18,8 @@ Global install (plugin auto-registration runs by default):
 ```bash
 npm install -g @biglone/session-bridge
 session-bridge --help
+session-bridge help
+session-bridge help resume-latest
 ```
 
 Skip auto-registration on global install:
@@ -158,6 +160,7 @@ Resume the latest session directly (no manual session id):
 ```
 
 On successful copy, CLI prints a short hint so you can open a new Codex session and paste.
+On Linux/SSH environments without `pbcopy/xclip`, it also tries OSC52 terminal clipboard escape as fallback.
 
 If you want full text in terminal instead, disable copy mode:
 

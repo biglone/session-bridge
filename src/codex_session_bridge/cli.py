@@ -1,5 +1,7 @@
 import argparse
+import base64
 import importlib.metadata
+import os
 import re
 import shutil
 import subprocess
@@ -146,6 +148,20 @@ def cmd_version(_: argparse.Namespace) -> int:
     return 0
 
 
+def cmd_help(args: argparse.Namespace) -> int:
+    parser = build_parser()
+    target = str(getattr(args, "command", "") or "").strip()
+    if not target:
+        parser.print_help()
+        return 0
+    try:
+        parser.parse_args([target, "--help"])
+    except SystemExit as exc:
+        code = int(exc.code) if isinstance(exc.code, int) else 1
+        return code
+    return 0
+
+
 def cmd_sync_demo(args: argparse.Namespace) -> int:
     store = _store_from_args(args)
     session = BridgeSession.new(
@@ -239,7 +255,36 @@ def _copy_to_clipboard(text: str) -> tuple[bool, str]:
             return True, executable
         except (OSError, subprocess.SubprocessError):
             continue
+
+    if _copy_via_osc52(text):
+        return True, "osc52"
+
     return False, ""
+
+
+def _copy_via_osc52(text: str) -> bool:
+    if os.getenv("SESSION_BRIDGE_DISABLE_OSC52", "").strip().lower() in {"1", "true", "yes"}:
+        return False
+    if not sys.stdout.isatty():
+        return False
+
+    payload = base64.b64encode(text.encode("utf-8")).decode("ascii")
+    max_bytes = int(os.getenv("SESSION_BRIDGE_OSC52_MAX_B64", "200000"))
+    if len(payload) > max_bytes:
+        return False
+
+    sequence = f"\033]52;c;{payload}\a"
+    if os.getenv("TMUX"):
+        sequence = f"\033Ptmux;\033{sequence}\033\\"
+    elif os.getenv("TERM", "").startswith("screen"):
+        sequence = f"\033P{sequence}\033\\"
+
+    try:
+        sys.stdout.write(sequence)
+        sys.stdout.flush()
+        return True
+    except OSError:
+        return False
 
 
 def _print_resume(
@@ -272,7 +317,7 @@ def _print_resume(
             return 0
         print(
             "Clipboard copy failed; printing full resume context below. "
-            "Install one of: pbcopy, wl-copy, xclip, xsel.",
+            "Install one of: pbcopy, wl-copy, xclip, xsel, or enable OSC52-capable terminal clipboard.",
             file=sys.stderr,
         )
 
@@ -403,6 +448,10 @@ def build_parser() -> argparse.ArgumentParser:
 
     p_init = subparsers.add_parser("init", help="Initialize local bridge database")
     p_init.set_defaults(func=cmd_init)
+
+    p_help = subparsers.add_parser("help", help="Show top-level or command-specific help")
+    p_help.add_argument("command", nargs="?", help="Optional command name (for example: resume-latest)")
+    p_help.set_defaults(func=cmd_help)
 
     p_version = subparsers.add_parser("version", help="Print current session-bridge version")
     p_version.set_defaults(func=cmd_version)

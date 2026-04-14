@@ -6,6 +6,12 @@ The format is based on Keep a Changelog and this project follows Semantic Versio
 
 ## [Unreleased]
 
+### Added
+- `bridge help` subcommand (including `bridge help <command>`) as an alias-style help entrypoint.
+
+### Changed
+- clipboard copy now falls back to OSC52 terminal escape in environments without `pbcopy/wl-copy/xclip/xsel` (for example SSH sessions), improving `resume-latest --copy` behavior.
+
 ## [0.1.5] - 2026-04-14
 
 ### Added

@@ -214,6 +214,16 @@ def _select_threads_for_cwd(con: sqlite3.Connection, cwd: str) -> list[dict[str,
     return [dict(r) for r in cur.fetchall()]
 
 
+def _candidate_rows_old_to_new(rows: list[dict[str, Any]], target_provider: str) -> list[dict[str, Any]]:
+    # `_select_threads_for_cwd` returns newest-first rows so template selection can
+    # use the latest matching thread. Reverse the non-target subset before
+    # rewriting rollout files so filesystem mtime changes preserve visible
+    # session ordering when Codex reloads history.
+    candidates = [row for row in rows if row.get("model_provider") != target_provider]
+    candidates.reverse()
+    return candidates
+
+
 def _update_threads_rows(
     con: sqlite3.Connection,
     rows_to_update: list[dict[str, Any]],
@@ -261,7 +271,7 @@ def apply_provider_shim(
                 _, meta_obj, _ = _read_session_meta(rollout_path, str(template_row.get("id", "")))
                 template_payload = dict(meta_obj.get("payload", {}))
 
-        candidate_rows = [r for r in rows if r.get("model_provider") != target_provider]
+        candidate_rows = _candidate_rows_old_to_new(rows, target_provider)
 
         effective_run_id = run_id or _new_run_id()
         shim_root = _shim_root_for_cwd(project_cwd)

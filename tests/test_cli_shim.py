@@ -177,6 +177,108 @@ def _setup_codex_fixture(tmp_path: Path) -> dict[str, object]:
     }
 
 
+def _setup_codex_ordering_fixture(tmp_path: Path) -> dict[str, object]:
+    project_root = (tmp_path / "repo").resolve()
+    project_root.mkdir(parents=True, exist_ok=True)
+
+    codex_home = (tmp_path / "codex-home").resolve()
+    codex_home.mkdir(parents=True, exist_ok=True)
+    state_db = codex_home / "state_5.sqlite"
+
+    session_rows = [
+        (
+            "thread-target",
+            "provider-target",
+            Path("sessions/2026/04/14/rollout-target.jsonl"),
+            "2026-04-14T08:00:04.000Z",
+            {"model": "gpt-target", "reasoning_effort": "high", "source": "target-source"},
+        ),
+        (
+            "thread-new",
+            "provider-new",
+            Path("sessions/2026/04/14/rollout-new.jsonl"),
+            "2026-04-14T08:00:03.000Z",
+            {"model": "gpt-new", "reasoning_effort": "medium", "source": "new-source"},
+        ),
+        (
+            "thread-mid",
+            "provider-mid",
+            Path("sessions/2026/04/14/rollout-mid.jsonl"),
+            "2026-04-14T08:00:02.000Z",
+            {"model": "gpt-mid", "reasoning_effort": "medium", "source": "mid-source"},
+        ),
+        (
+            "thread-old",
+            "provider-old",
+            Path("sessions/2026/04/14/rollout-old.jsonl"),
+            "2026-04-14T08:00:01.000Z",
+            {"model": "gpt-old", "reasoning_effort": "low", "source": "old-source"},
+        ),
+    ]
+
+    for thread_id, provider, rollout_rel, _updated_at, extra in session_rows:
+        _write_rollout(
+            codex_home / rollout_rel,
+            thread_id=thread_id,
+            cwd=str(project_root),
+            provider=provider,
+            extra=extra,
+        )
+
+    with sqlite3.connect(state_db) as con:
+        con.execute(
+            """
+            CREATE TABLE threads (
+              id TEXT PRIMARY KEY,
+              cwd TEXT NOT NULL,
+              model_provider TEXT NOT NULL,
+              rollout_path TEXT NOT NULL,
+              updated_at TEXT NOT NULL,
+              source TEXT,
+              cli_version TEXT,
+              model TEXT,
+              reasoning_effort TEXT,
+              agent_path TEXT,
+              memory_mode TEXT,
+              sandbox_policy TEXT,
+              approval_mode TEXT
+            )
+            """
+        )
+        for thread_id, provider, rollout_rel, updated_at, extra in session_rows:
+            con.execute(
+                """
+                INSERT INTO threads (
+                  id, cwd, model_provider, rollout_path, updated_at,
+                  source, cli_version, model, reasoning_effort,
+                  agent_path, memory_mode, sandbox_policy, approval_mode
+                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                """,
+                (
+                    thread_id,
+                    str(project_root),
+                    provider,
+                    str(rollout_rel),
+                    updated_at,
+                    extra["source"],
+                    "1.0",
+                    extra["model"],
+                    extra["reasoning_effort"],
+                    f"agent-{thread_id}",
+                    f"memory-{thread_id}",
+                    f"sandbox-{thread_id}",
+                    f"approval-{thread_id}",
+                ),
+            )
+        con.commit()
+
+    return {
+        "project_root": project_root,
+        "codex_home": codex_home,
+        "state_db": state_db,
+    }
+
+
 def test_apply_and_restore_provider_shim(tmp_path: Path) -> None:
     fx = _setup_codex_fixture(tmp_path)
     project_root = fx["project_root"]
@@ -209,6 +311,26 @@ def test_apply_and_restore_provider_shim(tmp_path: Path) -> None:
     assert runs
     assert runs[0]["run_id"] == applied.run_id
     assert runs[0]["status"] == "restored"
+
+
+def test_apply_provider_shim_rewrites_history_from_old_to_new(tmp_path: Path) -> None:
+    fx = _setup_codex_ordering_fixture(tmp_path)
+    project_root = fx["project_root"]
+    codex_home = fx["codex_home"]
+
+    applied = apply_provider_shim(
+        cwd=project_root,
+        target_provider="provider-target",
+        codex_home=codex_home,
+    )
+
+    manifest = json.loads(applied.manifest_path.read_text(encoding="utf-8"))
+    file_thread_ids = [entry["thread_id"] for entry in manifest["files"]]
+    sqlite_thread_ids = [entry["thread_id"] for entry in manifest["sqlite_rows"]]
+
+    assert applied.template_thread_id == "thread-target"
+    assert file_thread_ids == ["thread-old", "thread-mid", "thread-new"]
+    assert sqlite_thread_ids == ["thread-old", "thread-mid", "thread-new"]
 
 
 def test_apply_with_template_align_updates_payload_and_sqlite(tmp_path: Path) -> None:
